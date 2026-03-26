@@ -1,0 +1,191 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  Package,
+  ShoppingCart,
+  Wallet,
+  GitBranch,
+  BarChart3,
+  FileText,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  ListChecks,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+type Role = "admin" | "teamleiter" | "setter" | "berater";
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+const navItemsByRole: Record<Role, NavItem[]> = {
+  admin: [
+    { label: "Overview", href: "/admin", icon: LayoutDashboard },
+    { label: "Leads", href: "/admin/leads", icon: FileText },
+    { label: "Berater", href: "/admin/berater", icon: UserCheck },
+    { label: "Pakete", href: "/admin/pakete", icon: Package },
+    { label: "Nachkauf", href: "/admin/nachkauf", icon: ShoppingCart },
+    { label: "Budget", href: "/admin/budget", icon: Wallet },
+    { label: "Routing", href: "/admin/routing", icon: GitBranch },
+    { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+  ],
+  teamleiter: [
+    { label: "Overview", href: "/admin", icon: LayoutDashboard },
+    { label: "Leads", href: "/admin/leads", icon: FileText },
+    { label: "Berater", href: "/admin/berater", icon: UserCheck },
+    { label: "Pakete", href: "/admin/pakete", icon: Package },
+    { label: "Nachkauf", href: "/admin/nachkauf", icon: ShoppingCart },
+    { label: "Budget", href: "/admin/budget", icon: Wallet },
+    { label: "Routing", href: "/admin/routing", icon: GitBranch },
+    { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+  ],
+  berater: [
+    { label: "Overview", href: "/berater", icon: LayoutDashboard },
+    { label: "Meine Leads", href: "/berater/leads", icon: FileText },
+    { label: "Nachkauf", href: "/berater/nachkauf", icon: ShoppingCart },
+    { label: "Einstellungen", href: "/berater/settings", icon: Settings },
+  ],
+  setter: [
+    { label: "Arbeitsliste", href: "/setter", icon: ListChecks },
+  ],
+};
+
+interface SidebarProps {
+  role: Role;
+}
+
+export function Sidebar({ role }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const navItems = navItemsByRole[role] ?? [];
+
+  function isActive(href: string): boolean {
+    if (href === "/admin" || href === "/berater" || href === "/setter") {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
+  }
+
+  return (
+    <TooltipProvider>
+      <aside
+        className={cn(
+          "flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-200",
+          collapsed ? "w-16" : "w-64"
+        )}
+      >
+        {/* Brand */}
+        <div className="flex h-16 items-center border-b border-gray-200 px-4">
+          {!collapsed && (
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                <span className="text-sm font-bold text-white">LS</span>
+              </div>
+              <span className="text-lg font-semibold text-gray-900">
+                LeadSolution
+              </span>
+            </Link>
+          )}
+          {collapsed && (
+            <Link href="/" className="mx-auto flex items-center justify-center">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                <span className="text-sm font-bold text-white">LS</span>
+              </div>
+            </Link>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-2 py-4">
+          <ul className="flex flex-col gap-1">
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              const Icon = item.icon;
+
+              if (collapsed) {
+                return (
+                  <li key={item.href}>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              "flex h-10 w-full items-center justify-center rounded-lg transition-colors",
+                              active
+                                ? "bg-blue-50 text-blue-600"
+                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            )}
+                          />
+                        }
+                      >
+                        <Icon className="h-5 w-5" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  </li>
+                );
+              }
+
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Collapse toggle */}
+        <div className="border-t border-gray-200 p-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "h-10 w-full text-gray-500 hover:text-gray-700",
+              collapsed ? "justify-center" : "justify-end px-3"
+            )}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </aside>
+    </TooltipProvider>
+  );
+}
