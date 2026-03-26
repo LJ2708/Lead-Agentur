@@ -100,14 +100,12 @@ export function BeraterDetailActions({
       )}
 
       <Dialog open={paketDialogOpen} onOpenChange={setPaketDialogOpen}>
-        <DialogTrigger
-          render={
-            <Button variant="outline" size="sm">
-              <Settings className="mr-1 h-3 w-3" />
-              Paket aendern
-            </Button>
-          }
-        />
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Settings className="mr-1 h-3 w-3" />
+            Paket aendern
+          </Button>
+        </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Paket aendern</DialogTitle>

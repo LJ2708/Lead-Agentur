@@ -124,20 +124,18 @@ export function Sidebar({ role }: SidebarProps) {
                 return (
                   <li key={item.href}>
                     <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Link
-                            href={item.href}
-                            className={cn(
-                              "flex h-10 w-full items-center justify-center rounded-lg transition-colors",
-                              active
-                                ? "bg-blue-50 text-blue-600"
-                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                            )}
-                          />
-                        }
-                      >
-                        <Icon className="h-5 w-5" />
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex h-10 w-full items-center justify-center rounded-lg transition-colors",
+                            active
+                              ? "bg-blue-50 text-blue-600"
+                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          )}
+                        >
+                          <Icon className="h-5 w-5" />
+                        </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right">
                         {item.label}

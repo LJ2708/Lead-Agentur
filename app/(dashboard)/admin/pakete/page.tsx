@@ -139,14 +139,12 @@ export default function AdminPaketePage() {
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger
-            render={
-              <Button onClick={openCreate}>
-                <Plus className="mr-1 h-4 w-4" />
-                Neues Paket
-              </Button>
-            }
-          />
+          <DialogTrigger asChild>
+            <Button onClick={openCreate}>
+              <Plus className="mr-1 h-4 w-4" />
+              Neues Paket
+            </Button>
+          </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>
@@ -231,14 +229,16 @@ export default function AdminPaketePage() {
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
-                            size="icon-xs"
+                            size="icon"
+                            className="h-7 w-7"
                             onClick={() => openEdit(paket)}
                           >
                             <Pencil className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="icon-xs"
+                            size="icon"
+                            className="h-7 w-7"
                             onClick={() =>
                               handleDeactivate(paket.id, paket.is_active)
                             }

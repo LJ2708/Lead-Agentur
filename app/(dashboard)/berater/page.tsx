@@ -108,9 +108,11 @@ export default async function BeraterDashboardPage() {
             Ihr Lead-Dashboard im Ueberblick
           </p>
         </div>
-        <Button render={<Link href="/berater/nachkauf" />}>
-          <ShoppingCart className="h-4 w-4" data-icon="inline-start" />
-          Leads nachkaufen
+        <Button asChild>
+          <Link href="/berater/nachkauf">
+            <ShoppingCart className="h-4 w-4" data-icon="inline-start" />
+            Leads nachkaufen
+          </Link>
         </Button>
       </div>
 
@@ -173,9 +175,11 @@ export default async function BeraterDashboardPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Letzte Leads</CardTitle>
-            <Button variant="ghost" size="sm" render={<Link href="/berater/leads" />}>
-              Alle anzeigen
-              <ArrowRight className="h-3.5 w-3.5" data-icon="inline-end" />
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/berater/leads">
+                Alle anzeigen
+                <ArrowRight className="h-3.5 w-3.5" data-icon="inline-end" />
+              </Link>
             </Button>
           </div>
         </CardHeader>

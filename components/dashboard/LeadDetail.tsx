@@ -162,31 +162,31 @@ export function LeadDetail({
           <Separator />
           <div className="flex flex-wrap gap-2">
             {lead.telefon && (
-              <Button variant="outline" size="sm" render={<a href={`tel:${lead.telefon}`} />}>
-                <Phone className="h-3.5 w-3.5" data-icon="inline-start" />
-                Anrufen
+              <Button asChild variant="outline" size="sm">
+                <a href={`tel:${lead.telefon}`}>
+                  <Phone className="h-3.5 w-3.5" data-icon="inline-start" />
+                  Anrufen
+                </a>
               </Button>
             )}
             {lead.email && (
-              <Button variant="outline" size="sm" render={<a href={`mailto:${lead.email}`} />}>
-                <Mail className="h-3.5 w-3.5" data-icon="inline-start" />
-                E-Mail senden
+              <Button asChild variant="outline" size="sm">
+                <a href={`mailto:${lead.email}`}>
+                  <Mail className="h-3.5 w-3.5" data-icon="inline-start" />
+                  E-Mail senden
+                </a>
               </Button>
             )}
             {lead.telefon && (
-              <Button
-                variant="outline"
-                size="sm"
-                render={
-                  <a
-                    href={`https://wa.me/${lead.telefon.replace(/[^0-9+]/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  />
-                }
-              >
-                <MessageCircle className="h-3.5 w-3.5" data-icon="inline-start" />
-                WhatsApp senden
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={`https://wa.me/${lead.telefon.replace(/[^0-9+]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" data-icon="inline-start" />
+                  WhatsApp senden
+                </a>
               </Button>
             )}
           </div>

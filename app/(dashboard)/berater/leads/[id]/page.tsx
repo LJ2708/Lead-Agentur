@@ -284,39 +284,31 @@ export default function BeraterLeadDetailPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {lead.telefon && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  render={<a href={`tel:${lead.telefon}`} />}
-                >
-                  <Phone className="h-4 w-4" data-icon="inline-start" />
-                  Anrufen
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a href={`tel:${lead.telefon}`}>
+                    <Phone className="h-4 w-4" data-icon="inline-start" />
+                    Anrufen
+                  </a>
                 </Button>
               )}
               {lead.email && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  render={<a href={`mailto:${lead.email}`} />}
-                >
-                  <Mail className="h-4 w-4" data-icon="inline-start" />
-                  E-Mail senden
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a href={`mailto:${lead.email}`}>
+                    <Mail className="h-4 w-4" data-icon="inline-start" />
+                    E-Mail senden
+                  </a>
                 </Button>
               )}
               {lead.telefon && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  render={
-                    <a
-                      href={`https://wa.me/${lead.telefon.replace(/[^0-9+]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    />
-                  }
-                >
-                  <MessageCircle className="h-4 w-4" data-icon="inline-start" />
-                  WhatsApp senden
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a
+                    href={`https://wa.me/${lead.telefon.replace(/[^0-9+]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="h-4 w-4" data-icon="inline-start" />
+                    WhatsApp senden
+                  </a>
                 </Button>
               )}
             </CardContent>

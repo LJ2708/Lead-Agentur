@@ -52,18 +52,16 @@ export function Topbar({ user }: TopbarProps) {
         </Badge>
 
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="default" className="gap-2" />
-            }
-          >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200">
-              <UserIcon className="h-4 w-4 text-gray-600" />
-            </div>
-            <span className="max-w-[150px] truncate text-sm font-medium text-gray-700">
-              {user.full_name}
-            </span>
-            <ChevronDown className="h-4 w-4 text-gray-500" />
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="default" className="gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200">
+                <UserIcon className="h-4 w-4 text-gray-600" />
+              </div>
+              <span className="max-w-[150px] truncate text-sm font-medium text-gray-700">
+                {user.full_name}
+              </span>
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            </Button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" sideOffset={8}>
@@ -76,7 +74,7 @@ export function Topbar({ user }: TopbarProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} variant="destructive">
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
               <LogOut className="h-4 w-4" />
               Abmelden
             </DropdownMenuItem>

@@ -333,31 +333,24 @@ export default function SetterLeadDetailPage() {
             <CardContent className="space-y-2">
               {lead.telefon && (
                 <>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    render={<a href={`tel:${lead.telefon}`} />}
-                    onClick={handleLogCall}
-                  >
-                    <Phone className="h-4 w-4" data-icon="inline-start" />
-                    Anrufen
+                  <Button asChild variant="outline" className="w-full justify-start" onClick={handleLogCall}>
+                    <a href={`tel:${lead.telefon}`}>
+                      <Phone className="h-4 w-4" data-icon="inline-start" />
+                      Anrufen
+                    </a>
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    render={
-                      <a
-                        href={`https://wa.me/${lead.telefon.replace(/[^0-9+]/g, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                  <Button asChild variant="outline" className="w-full justify-start">
+                    <a
+                      href={`https://wa.me/${lead.telefon.replace(/[^0-9+]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle
+                        className="h-4 w-4"
+                        data-icon="inline-start"
                       />
-                    }
-                  >
-                    <MessageCircle
-                      className="h-4 w-4"
-                      data-icon="inline-start"
-                    />
-                    WhatsApp senden
+                      WhatsApp senden
+                    </a>
                   </Button>
                 </>
               )}
