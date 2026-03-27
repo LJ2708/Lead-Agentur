@@ -6,6 +6,9 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { KontingentIndicator } from "@/components/dashboard/KontingentIndicator";
 import { PacingChart } from "@/components/dashboard/PacingChart";
 import { SmartInbox } from "@/components/dashboard/SmartInbox";
+import { PerformanceWidget } from "@/components/dashboard/PerformanceWidget";
+import { Leaderboard } from "@/components/dashboard/Leaderboard";
+import { BehavioralNudge } from "@/components/dashboard/BehavioralNudge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -164,6 +167,15 @@ export default async function BeraterDashboardPage() {
             <PacingChart kontingent={kontingent} geliefert={geliefert} />
           </CardContent>
         </Card>
+      </div>
+
+      {/* Behavioral Nudge */}
+      <BehavioralNudge beraterId={berater.id} />
+
+      {/* Performance + Leaderboard */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PerformanceWidget beraterId={berater.id} />
+        <Leaderboard maxRows={5} compact />
       </div>
 
       {/* Smart Inbox replaces the old "Letzte Leads" table */}

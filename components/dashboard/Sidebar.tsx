@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ListChecks,
+  Trophy,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -46,6 +47,7 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Budget", href: "/admin/budget", icon: Wallet },
     { label: "Routing", href: "/admin/routing", icon: GitBranch },
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+    { label: "Performance", href: "/admin/performance", icon: Trophy },
   ],
   teamleiter: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
