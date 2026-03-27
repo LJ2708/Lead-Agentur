@@ -41,12 +41,12 @@ export function QuickCallLogger({
 
   const handleSave = useCallback(async () => {
     if (!result) {
-      toast.error("Bitte Ergebnis ausw\u00e4hlen");
+      toast.error("Bitte Ergebnis auswählen");
       return;
     }
 
     if (result === "termin_vereinbart" && (!terminDate || !terminTime)) {
-      toast.error("Bitte Datum und Uhrzeit f\u00fcr den Termin angeben");
+      toast.error("Bitte Datum und Uhrzeit für den Termin angeben");
       return;
     }
 
@@ -65,19 +65,19 @@ export function QuickCallLogger({
       switch (result) {
         case "erreicht":
           newStatus = "kontaktversuch";
-          activityTitle = "Anruf \u2013 Erreicht";
+          activityTitle = "Anruf – Erreicht";
           break;
         case "nicht_erreicht":
           newStatus = "nicht_erreicht";
-          activityTitle = "Anruf \u2013 Nicht erreicht";
+          activityTitle = "Anruf – Nicht erreicht";
           break;
         case "mailbox":
           newStatus = "nicht_erreicht";
-          activityTitle = "Anruf \u2013 Mailbox";
+          activityTitle = "Anruf – Mailbox";
           break;
         case "termin_vereinbart":
           newStatus = "termin";
-          activityTitle = "Anruf \u2013 Termin vereinbart";
+          activityTitle = "Anruf – Termin vereinbart";
           break;
       }
 
@@ -149,7 +149,7 @@ export function QuickCallLogger({
         }
       }
 
-      toast.success(`Anruf f\u00fcr ${leadName} gespeichert`);
+      toast.success(`Anruf für ${leadName} gespeichert`);
       onComplete();
     } catch {
       toast.error("Fehler beim Speichern des Anrufs");

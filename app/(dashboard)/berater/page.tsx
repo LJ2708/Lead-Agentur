@@ -1,22 +1,23 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { berechnePacingInfo } from "@/lib/routing/pacing";
-import { StatsCard } from "@/components/dashboard/StatsCard";
-import { KontingentIndicator } from "@/components/dashboard/KontingentIndicator";
-import { PacingChart } from "@/components/dashboard/PacingChart";
 import { SmartInbox } from "@/components/dashboard/SmartInbox";
 import { PerformanceWidget } from "@/components/dashboard/PerformanceWidget";
 import { Leaderboard } from "@/components/dashboard/Leaderboard";
 import { BehavioralNudge } from "@/components/dashboard/BehavioralNudge";
+import { KontingentIndicator } from "@/components/dashboard/KontingentIndicator";
+import { PacingChart } from "@/components/dashboard/PacingChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
 import {
-  BarChart3,
-  Users,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Phone,
+  Target,
   CalendarDays,
-  ShoppingCart,
+  TrendingUp,
+  ChevronDown,
 } from "lucide-react";
 
 export default async function BeraterDashboardPage() {
@@ -30,7 +31,6 @@ export default async function BeraterDashboardPage() {
     redirect("/login");
   }
 
-  // Fetch profile
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -41,7 +41,6 @@ export default async function BeraterDashboardPage() {
     redirect("/login");
   }
 
-  // Fetch berater record
   const { data: berater } = await supabase
     .from("berater")
     .select("*")
@@ -52,25 +51,24 @@ export default async function BeraterDashboardPage() {
     redirect("/login");
   }
 
-  // Fetch leads assigned to this berater
+  // Fetch active leads
   const { data: allLeads } = await supabase
     .from("leads")
     .select("*")
-    .eq("berater_id", berater.id)
-    .order("created_at", { ascending: false });
+    .eq("berater_id", berater.id);
 
   const leads = allLeads ?? [];
 
-  // Stats
   const offeneLeads = leads.filter(
-    (l) =>
-      !["abschluss", "verloren"].includes(l.status)
+    (l) => !["abschluss", "verloren"].includes(l.status)
   ).length;
+
+  const slaActive = leads.filter((l) => l.sla_status === "active").length;
 
   // Termine diese Woche
   const now = new Date();
   const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
   startOfWeek.setHours(0, 0, 0, 0);
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -85,102 +83,133 @@ export default async function BeraterDashboardPage() {
 
   const termineCount = termineWoche?.length ?? 0;
 
-  // Nachkauf leads (leads from nachkauf that are still open)
-  const nachkaufOffen = leads.filter(
-    (l) =>
-      l.status === "zugewiesen" || l.status === "kontaktversuch"
-  ).length;
-
-  // Pacing
   const kontingent = berater.leads_kontingent;
   const geliefert = berater.leads_geliefert;
-  const pacing = berechnePacingInfo(kontingent, geliefert);
+  const nachkaufOffen = berater.nachkauf_leads_offen;
+
+  const firstName = profile.full_name?.split(" ")[0] ?? "Berater";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Willkommen, {profile.full_name?.split(" ")[0] ?? "Berater"}
-          </h1>
-          <p className="text-muted-foreground">
-            Ihr Lead-Dashboard im \u00dcberblick
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/berater/nachkauf">
-            <ShoppingCart className="h-4 w-4" data-icon="inline-start" />
-            Leads nachkaufen
-          </Link>
-        </Button>
+    <div className="space-y-4">
+      {/* Header — compact */}
+      <div>
+        <h1 className="text-xl font-bold tracking-tight">
+          Hallo, {firstName}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {offeneLeads} offene Leads
+          {slaActive > 0 && (
+            <span className="ml-2 text-red-600 font-medium">
+              {" \u2022 "}{slaActive} SLA aktiv
+            </span>
+          )}
+          {" \u2022 "}{geliefert}/{kontingent} Kontingent
+          {" \u2022 "}{termineCount} Termine
+        </p>
       </div>
 
-      {/* Stats Cards - 2x2 on mobile, 4 cols on desktop */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatsCard
-          title="Kontingent"
-          value={`${geliefert} / ${kontingent}`}
-          description={`${pacing.prozent}% ausgesch\u00f6pft`}
-          icon={BarChart3}
-        />
-        <StatsCard
-          title="Offene Leads"
+      {/* Compact stats row */}
+      <div className="grid grid-cols-4 gap-2">
+        <MiniStat
+          icon={<Phone className="h-4 w-4 text-blue-600" />}
           value={offeneLeads}
-          description="Aktive Leads in Bearbeitung"
-          icon={Users}
+          label="Offen"
         />
-        <StatsCard
-          title="Termine diese Woche"
+        <MiniStat
+          icon={<Target className="h-4 w-4 text-green-600" />}
+          value={`${geliefert}/${kontingent}`}
+          label="Kontingent"
+        />
+        <MiniStat
+          icon={<CalendarDays className="h-4 w-4 text-purple-600" />}
           value={termineCount}
-          description="Geplante Gespr\u00e4che"
-          icon={CalendarDays}
+          label="Termine"
         />
-        <StatsCard
-          title="Nachkauf-Leads offen"
+        <MiniStat
+          icon={<TrendingUp className="h-4 w-4 text-amber-600" />}
           value={nachkaufOffen}
-          description="Noch nicht qualifiziert"
-          icon={ShoppingCart}
+          label="Nachkauf"
         />
       </div>
 
-      {/* Kontingent + Pacing: stack on mobile */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Kontingent Indicator */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Kontingent-Fortschritt</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <KontingentIndicator
-              geliefert={geliefert}
-              kontingent={kontingent}
-              nachkaufOffen={nachkaufOffen}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Pacing Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Pacing</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PacingChart kontingent={kontingent} geliefert={geliefert} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Behavioral Nudge */}
+      {/* Behavioral Nudge — compact tip */}
       <BehavioralNudge beraterId={berater.id} />
 
-      {/* Performance + Leaderboard: stack on mobile */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PerformanceWidget beraterId={berater.id} />
-        <Leaderboard maxRows={5} compact />
-      </div>
-
-      {/* Smart Inbox - full width on all screens */}
+      {/* MAIN: Smart Inbox — the primary work area */}
       <SmartInbox beraterId={berater.id} />
+
+      {/* Collapsible: Performance & Pacing */}
+      <CollapsibleSection title="Meine Performance">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <PerformanceWidget beraterId={berater.id} />
+          <Leaderboard maxRows={5} compact />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Kontingent & Pacing">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Kontingent</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <KontingentIndicator
+                geliefert={geliefert}
+                kontingent={kontingent}
+                nachkaufOffen={nachkaufOffen}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Pacing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PacingChart kontingent={kontingent} geliefert={geliefert} />
+            </CardContent>
+          </Card>
+        </div>
+      </CollapsibleSection>
     </div>
+  );
+}
+
+function MiniStat({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: string | number;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border bg-card p-2.5">
+      {icon}
+      <div className="min-w-0">
+        <p className="text-sm font-bold leading-none">{value}</p>
+        <p className="text-[10px] text-muted-foreground truncate">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-medium hover:bg-accent transition-colors">
+        {title}
+        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-3">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

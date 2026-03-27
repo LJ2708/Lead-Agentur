@@ -36,7 +36,7 @@ function generateNudge(data: RepPerformance): Nudge | null {
       iconColor: "text-yellow-500",
       bgColor: "bg-yellow-50 border-yellow-200",
       message:
-        "Gro\u00dfartige Arbeit! Ihre Abschlussrate liegt \u00fcber dem Team-Durchschnitt.",
+        "Großartige Arbeit! Ihre Abschlussrate liegt über dem Team-Durchschnitt.",
       key: "star_close_rate",
     }
   }
@@ -48,7 +48,7 @@ function generateNudge(data: RepPerformance): Nudge | null {
       iconColor: "text-blue-500",
       bgColor: "bg-blue-50 border-blue-200",
       message:
-        "Tipp: Leads innerhalb von 30 Minuten kontaktieren erh\u00f6ht die Abschlussrate um 40%.",
+        "Tipp: Leads innerhalb von 30 Minuten kontaktieren erhöht die Abschlussrate um 40%.",
       key: "tip_sla",
     }
   }
@@ -84,7 +84,7 @@ function generateNudge(data: RepPerformance): Nudge | null {
       iconColor: "text-orange-500",
       bgColor: "bg-orange-50 border-orange-200",
       message:
-        "Hervorragend! Ihre SLA-Quote liegt bei \u00fcber 95% \u2013 weiter so!",
+        "Hervorragend! Ihre SLA-Quote liegt bei über 95% – weiter so!",
       key: "streak_sla",
     }
   }
@@ -160,7 +160,7 @@ export function BehavioralNudge({ beraterId }: BehavioralNudgeProps) {
           onClick={handleDismiss}
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Schlie\u00dfen</span>
+          <span className="sr-only">Schließen</span>
         </Button>
       </CardContent>
     </Card>

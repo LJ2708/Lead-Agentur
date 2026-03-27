@@ -89,7 +89,7 @@ export default async function AdminOverviewPage() {
           Admin Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Gesamt\u00fcberblick \u00fcber Leads, Berater und Umsatz.
+          Gesamtüberblick über Leads, Berater und Umsatz.
         </p>
       </div>
 

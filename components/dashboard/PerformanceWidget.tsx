@@ -194,7 +194,7 @@ export function PerformanceWidget({ beraterId }: PerformanceWidgetProps) {
 
   const metrics = [
     {
-      label: "\u00d8 Annahmezeit",
+      label: "Ø Annahmezeit",
       value: formatSeconds(data.avgTimeToAccept),
       icon: Clock,
     },
@@ -252,12 +252,12 @@ export function PerformanceWidget({ beraterId }: PerformanceWidgetProps) {
           <div className="flex-1 space-y-2.5 pt-1">
             <MiniBar label="Speed" value={data.scoreBreakdown.speed} max={25} />
             <MiniBar
-              label="Zuverl\u00e4ssigkeit"
+              label="Zuverlässigkeit"
               value={data.scoreBreakdown.reliability}
               max={25}
             />
             <MiniBar
-              label="Effektivit\u00e4t"
+              label="Effektivität"
               value={data.scoreBreakdown.effectiveness}
               max={25}
             />

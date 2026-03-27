@@ -54,7 +54,7 @@ export function Topbar({ user }: TopbarProps) {
           size="icon"
           onClick={toggle}
           className="md:hidden"
-          aria-label="Men\u00fc \u00f6ffnen"
+          aria-label="Menü öffnen"
         >
           <Menu className="h-5 w-5" />
         </Button>

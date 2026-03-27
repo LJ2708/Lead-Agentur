@@ -44,7 +44,7 @@ function PriorityDot({ priority }: { priority: "hot" | "warm" | "cold" }) {
       className={`inline-block h-3 w-3 shrink-0 rounded-full ${colors[priority]}`}
       title={
         priority === "hot"
-          ? "Hei\u00df"
+          ? "Heiß"
           : priority === "warm"
             ? "Warm"
             : "Kalt"

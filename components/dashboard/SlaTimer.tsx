@@ -40,7 +40,7 @@ export function SlaTimer({ deadline, status }: SlaTimerProps) {
     return (
       <div className="flex items-center gap-1.5 text-xs font-medium text-red-600">
         <XCircle className="h-3.5 w-3.5" />
-        <span>SLA \u00fcberschritten</span>
+        <span>SLA überschritten</span>
       </div>
     )
   }

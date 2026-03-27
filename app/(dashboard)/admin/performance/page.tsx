@@ -102,7 +102,7 @@ export default function AdminPerformancePage() {
             Team Performance
           </h1>
           <p className="text-muted-foreground">
-            {"\u00dc"}berblick {"\u00fc"}ber die Leistung aller Berater
+            Überblick über die Leistung aller Berater
           </p>
         </div>
         <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
@@ -123,7 +123,7 @@ export default function AdminPerformancePage() {
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatsCard
-              title={"\u00d8 Team-Score"}
+              title="Ø Team-Score"
               value={avgScore}
               description="Durchschnittlicher Performance-Score"
               icon={Trophy}
@@ -131,11 +131,11 @@ export default function AdminPerformancePage() {
             <StatsCard
               title="Beste SLA-Quote"
               value={`${bestSla}%`}
-              description="H\u00f6chste SLA-Einhaltung"
+              description="Höchste SLA-Einhaltung"
               icon={ShieldCheck}
             />
             <StatsCard
-              title={"\u00d8 Kontaktrate"}
+              title="Ø Kontaktrate"
               value={`${avgContactRate}%`}
               description="Durchschnittliche Kontaktrate"
               icon={Phone}
@@ -143,7 +143,7 @@ export default function AdminPerformancePage() {
             <StatsCard
               title="Umsatz gesamt"
               value={formatEuro(totalRevenue)}
-              description="Im ausgew\u00e4hlten Zeitraum"
+              description="Im ausgewählten Zeitraum"
               icon={Euro}
             />
           </div>
@@ -196,13 +196,13 @@ export default function AdminPerformancePage() {
                         dataKey="reliability"
                         stackId="a"
                         fill="#10b981"
-                        name={`Zuverl\u00e4ssigkeit`}
+                        name="Zuverlässigkeit"
                       />
                       <Bar
                         dataKey="effectiveness"
                         stackId="a"
                         fill="#f59e0b"
-                        name={`Effektivit\u00e4t`}
+                        name="Effektivität"
                       />
                       <Bar
                         dataKey="results"
@@ -215,7 +215,7 @@ export default function AdminPerformancePage() {
                   </ResponsiveContainer>
                 ) : (
                   <p className="py-12 text-center text-sm text-muted-foreground">
-                    Keine Daten verf{"\u00fc"}gbar
+                    Keine Daten verfügbar
                   </p>
                 )}
               </CardContent>
@@ -246,7 +246,7 @@ export default function AdminPerformancePage() {
                   </ResponsiveContainer>
                 ) : (
                   <p className="py-12 text-center text-sm text-muted-foreground">
-                    Keine Daten verf{"\u00fc"}gbar
+                    Keine Daten verfügbar
                   </p>
                 )}
               </CardContent>
@@ -275,7 +275,7 @@ export default function AdminPerformancePage() {
                   </ResponsiveContainer>
                 ) : (
                   <p className="py-12 text-center text-sm text-muted-foreground">
-                    Keine Daten verf{"\u00fc"}gbar
+                    Keine Daten verfügbar
                   </p>
                 )}
               </CardContent>

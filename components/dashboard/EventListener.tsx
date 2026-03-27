@@ -62,7 +62,7 @@ export function EventListener({ userId, beraterId }: EventListenerProps) {
               const name = [newLead.vorname, newLead.nachname]
                 .filter(Boolean)
                 .join(" ") || "Lead"
-              toast.info(`${name}: Status ge\u00e4ndert`, {
+              toast.info(`${name}: Status geändert`, {
                 description: `Neuer Status: ${newLead.status}`,
               })
             }
@@ -76,7 +76,7 @@ export function EventListener({ userId, beraterId }: EventListenerProps) {
                   .filter(Boolean)
                   .join(" ") || "Lead"
                 const mins = Math.ceil(remaining / 60_000)
-                toast.warning(`SLA l\u00e4uft ab: ${name}`, {
+                toast.warning(`SLA läuft ab: ${name}`, {
                   description: `Noch ${mins} Minute${mins > 1 ? "n" : ""} verbleibend`,
                 })
               }

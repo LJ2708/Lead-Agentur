@@ -53,7 +53,7 @@ export function QuickNoteAdder({ leadId, onComplete }: QuickNoteAdderProps) {
   return (
     <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
       <Textarea
-        placeholder="Notiz hinzuf\u00fcgen..."
+        placeholder="Notiz hinzufügen..."
         value={note}
         onChange={(e) => setNote(e.target.value)}
         rows={2}
