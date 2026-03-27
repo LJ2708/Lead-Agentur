@@ -66,7 +66,7 @@ export default function AdminLeadsPage() {
     let query = supabase
       .from("leads")
       .select(
-        "*, berater:zugewiesen_an(id, profiles:profile_id(full_name))",
+        "*, berater:berater_id(id, profiles:profile_id(full_name))",
         { count: "exact" }
       )
       .order("created_at", { ascending: false })

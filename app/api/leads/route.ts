@@ -59,10 +59,10 @@ export async function GET(request: NextRequest) {
     if (!berater) {
       return NextResponse.json({ data: [], total: 0, page, limit })
     }
-    query = query.eq('zugewiesen_an', berater.id)
+    query = query.eq('berater_id', berater.id)
   } else if (profile.role === 'setter') {
-    // Setter sees leads assigned to them via besitzer_id
-    query = query.eq('besitzer_id', user.id)
+    // Setter sees leads assigned to them via setter_id
+    query = query.eq('setter_id', user.id)
   }
   // admin and teamleiter see all leads (no additional filter)
 
