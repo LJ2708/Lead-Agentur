@@ -98,7 +98,7 @@ export default async function BeraterDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             Willkommen, {profile.full_name?.split(" ")[0] ?? "Berater"}
@@ -115,8 +115,8 @@ export default async function BeraterDashboardPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards - 2x2 on mobile, 4 cols on desktop */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatsCard
           title="Kontingent"
           value={`${geliefert} / ${kontingent}`}
@@ -143,6 +143,7 @@ export default async function BeraterDashboardPage() {
         />
       </div>
 
+      {/* Kontingent + Pacing: stack on mobile */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Kontingent Indicator */}
         <Card>
@@ -172,13 +173,13 @@ export default async function BeraterDashboardPage() {
       {/* Behavioral Nudge */}
       <BehavioralNudge beraterId={berater.id} />
 
-      {/* Performance + Leaderboard */}
+      {/* Performance + Leaderboard: stack on mobile */}
       <div className="grid gap-6 lg:grid-cols-2">
         <PerformanceWidget beraterId={berater.id} />
         <Leaderboard maxRows={5} compact />
       </div>
 
-      {/* Smart Inbox replaces the old "Letzte Leads" table */}
+      {/* Smart Inbox - full width on all screens */}
       <SmartInbox beraterId={berater.id} />
     </div>
   );

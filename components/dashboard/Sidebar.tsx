@@ -13,6 +13,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useSidebarContext } from "@/components/dashboard/MobileLayout";
+import {
   LayoutDashboard,
   UserCheck,
   Package,
@@ -74,11 +80,97 @@ interface SidebarProps {
   role: Role;
 }
 
+function SidebarNav({
+  navItems,
+  showBadges,
+  neuLeadsCount,
+  collapsed,
+  onItemClick,
+}: {
+  navItems: NavItem[];
+  showBadges: boolean;
+  neuLeadsCount: number;
+  collapsed: boolean;
+  onItemClick?: () => void;
+}) {
+  const pathname = usePathname();
+
+  function isActive(href: string): boolean {
+    if (href === "/admin" || href === "/berater" || href === "/setter") {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
+  }
+
+  return (
+    <ul className="flex flex-col gap-1">
+      {navItems.map((item) => {
+        const active = isActive(item.href);
+        const Icon = item.icon;
+        const badgeCount =
+          showBadges && item.label === "Leads" ? neuLeadsCount : 0;
+
+        if (collapsed) {
+          return (
+            <li key={item.href}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.href}
+                    onClick={onItemClick}
+                    className={cn(
+                      "relative flex h-10 w-full items-center justify-center rounded-lg transition-colors",
+                      active
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {badgeCount > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                        {badgeCount > 99 ? "99+" : badgeCount}
+                      </span>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            </li>
+          );
+        }
+
+        return (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              onClick={onItemClick}
+              className={cn(
+                "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                active
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              )}
+            >
+              <Icon className="h-5 w-5 shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {badgeCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold leading-none text-white">
+                  {badgeCount > 99 ? "99+" : badgeCount}
+                </span>
+              )}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function Sidebar({ role }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [neuLeadsCount, setNeuLeadsCount] = useState(0);
-  const pathname = usePathname();
   const navItems = navItemsByRole[role] ?? [];
+  const { isOpen, close } = useSidebarContext();
 
   const showBadges = role === "admin" || role === "teamleiter";
 
@@ -98,33 +190,27 @@ export function Sidebar({ role }: SidebarProps) {
     return () => clearInterval(interval);
   }, [fetchNeuLeads]);
 
-  function isActive(href: string): boolean {
-    if (href === "/admin" || href === "/berater" || href === "/setter") {
-      return pathname === href;
-    }
-    return pathname.startsWith(href);
-  }
+  const brandLink = (
+    <Link href="/" className="flex items-center gap-2">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+        <span className="text-sm font-bold text-white">LS</span>
+      </div>
+      <span className="text-lg font-semibold text-gray-900">LeadSolution</span>
+    </Link>
+  );
 
   return (
     <TooltipProvider>
+      {/* Desktop sidebar */}
       <aside
         className={cn(
-          "flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-200",
+          "hidden h-screen flex-col border-r border-gray-200 bg-white transition-all duration-200 md:flex",
           collapsed ? "w-16" : "w-64"
         )}
       >
         {/* Brand */}
         <div className="flex h-16 items-center border-b border-gray-200 px-4">
-          {!collapsed && (
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-                <span className="text-sm font-bold text-white">LS</span>
-              </div>
-              <span className="text-lg font-semibold text-gray-900">
-                LeadSolution
-              </span>
-            </Link>
-          )}
+          {!collapsed && brandLink}
           {collapsed && (
             <Link href="/" className="mx-auto flex items-center justify-center">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
@@ -136,67 +222,12 @@ export function Sidebar({ role }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 py-4">
-          <ul className="flex flex-col gap-1">
-            {navItems.map((item) => {
-              const active = isActive(item.href);
-              const Icon = item.icon;
-
-              const badgeCount =
-                showBadges && item.label === "Leads" ? neuLeadsCount : 0;
-
-              if (collapsed) {
-                return (
-                  <li key={item.href}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "relative flex h-10 w-full items-center justify-center rounded-lg transition-colors",
-                            active
-                              ? "bg-blue-50 text-blue-600"
-                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          )}
-                        >
-                          <Icon className="h-5 w-5" />
-                          {badgeCount > 0 && (
-                            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
-                              {badgeCount > 99 ? "99+" : badgeCount}
-                            </span>
-                          )}
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">
-                        {item.label}
-                      </TooltipContent>
-                    </Tooltip>
-                  </li>
-                );
-              }
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                    )}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span className="flex-1">{item.label}</span>
-                    {badgeCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold leading-none text-white">
-                        {badgeCount > 99 ? "99+" : badgeCount}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <SidebarNav
+            navItems={navItems}
+            showBadges={showBadges}
+            neuLeadsCount={neuLeadsCount}
+            collapsed={collapsed}
+          />
         </nav>
 
         {/* Collapse toggle */}
@@ -218,6 +249,25 @@ export function Sidebar({ role }: SidebarProps) {
           </Button>
         </div>
       </aside>
+
+      {/* Mobile sidebar (Sheet) */}
+      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
+        <SheetContent side="left" className="w-64 p-0">
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <div className="flex h-16 items-center border-b border-gray-200 px-4">
+            {brandLink}
+          </div>
+          <nav className="flex-1 overflow-y-auto px-2 py-4">
+            <SidebarNav
+              navItems={navItems}
+              showBadges={showBadges}
+              neuLeadsCount={neuLeadsCount}
+              collapsed={false}
+              onItemClick={close}
+            />
+          </nav>
+        </SheetContent>
+      </Sheet>
     </TooltipProvider>
   );
 }

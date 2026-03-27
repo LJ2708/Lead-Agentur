@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { MobileLayout } from "@/components/dashboard/MobileLayout";
+import { EventListener } from "@/components/dashboard/EventListener";
 
 export default async function DashboardLayout({
   children,
@@ -80,7 +82,7 @@ export default async function DashboardLayout({
     return <>{children}</>;
   }
 
-  // Get berater ID for topbar availability toggle
+  // Get berater ID for topbar availability toggle and EventListener
   let topbarBeraterId: string | undefined;
   if (role === "berater") {
     const { data: beraterForTopbar } = await supabase
@@ -92,9 +94,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar role={role} />
-      <div className="flex flex-1 flex-col overflow-hidden">
+    <MobileLayout
+      sidebar={<Sidebar role={role} />}
+      topbar={
         <Topbar
           user={{
             email: user.email ?? "",
@@ -103,8 +105,10 @@ export default async function DashboardLayout({
             beraterId: topbarBeraterId,
           }}
         />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
+      }
+    >
+      <EventListener userId={user.id} beraterId={topbarBeraterId} />
+      {children}
+    </MobileLayout>
   );
 }

@@ -1,9 +1,11 @@
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge"
 import { SmartInsights } from "@/components/dashboard/SmartInsights"
 import { RealtimeLeadFeed } from "@/components/dashboard/RealtimeLeadFeed"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -13,7 +15,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatEuro, formatDate } from "@/lib/utils"
-import { Users, UserCheck, TrendingUp, Zap } from "lucide-react"
+import {
+  Users,
+  UserCheck,
+  TrendingUp,
+  Zap,
+  RefreshCw,
+  PlusCircle,
+  UserPlus,
+} from "lucide-react"
 
 export default async function AdminOverviewPage() {
   const supabase = await createClient()
@@ -79,12 +89,12 @@ export default async function AdminOverviewPage() {
           Admin Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Gesamtüberblick über Leads, Berater und Umsatz.
+          Gesamt\u00fcberblick \u00fcber Leads, Berater und Umsatz.
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatsCard
           title="Leads gesamt"
           value={totalLeads ?? 0}
@@ -111,23 +121,52 @@ export default async function AdminOverviewPage() {
         />
       </div>
 
+      {/* Schnellaktionen */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Schnellaktionen</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="default">
+              <Link href="/api/routing/distribute" prefetch={false}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Alle Leads verteilen
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/admin/leads/neu">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Neuer Lead
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/admin/berater">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Neuer Berater einladen
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KI-Einblicke */}
       <SmartInsights />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Leads + Live Feed */}
+        {/* Recent Leads */}
         <Card>
           <CardHeader>
             <CardTitle>Letzte Leads</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Quelle</TableHead>
-                  <TableHead>Erstellt</TableHead>
+                  <TableHead className="hidden sm:table-cell">Quelle</TableHead>
+                  <TableHead className="hidden sm:table-cell">Erstellt</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -149,10 +188,12 @@ export default async function AdminOverviewPage() {
                       <TableCell>
                         <LeadStatusBadge status={lead.status} />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         {quelleLabel[lead.source] ?? lead.source}
                       </TableCell>
-                      <TableCell>{formatDate(lead.created_at)}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {formatDate(lead.created_at)}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -168,7 +209,7 @@ export default async function AdminOverviewPage() {
           <CardHeader>
             <CardTitle>Aktive Berater</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
