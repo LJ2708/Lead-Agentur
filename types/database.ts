@@ -260,6 +260,15 @@ export type Database = {
           opt_in_email: boolean | null
           opt_in_whatsapp: boolean | null
           opt_in_telefon: boolean | null
+          sla_deadline: string | null
+          sla_status: string | null
+          accepted_at: string | null
+          accepted_by: string | null
+          first_contact_at: string | null
+          contact_outcome: string | null
+          callback_at: string | null
+          reassignment_count: number
+          previous_berater_ids: string[] | null
           created_at: string
           updated_at: string
         }
@@ -294,6 +303,15 @@ export type Database = {
           opt_in_email?: boolean | null
           opt_in_whatsapp?: boolean | null
           opt_in_telefon?: boolean | null
+          sla_deadline?: string | null
+          sla_status?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
+          first_contact_at?: string | null
+          contact_outcome?: string | null
+          callback_at?: string | null
+          reassignment_count?: number
+          previous_berater_ids?: string[] | null
           created_at?: string
           updated_at?: string
         }
@@ -328,6 +346,15 @@ export type Database = {
           opt_in_email?: boolean | null
           opt_in_whatsapp?: boolean | null
           opt_in_telefon?: boolean | null
+          sla_deadline?: string | null
+          sla_status?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
+          first_contact_at?: string | null
+          contact_outcome?: string | null
+          callback_at?: string | null
+          reassignment_count?: number
+          previous_berater_ids?: string[] | null
           created_at?: string
           updated_at?: string
         }

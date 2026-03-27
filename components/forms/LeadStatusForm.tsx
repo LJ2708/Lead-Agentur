@@ -20,33 +20,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { getStatusLabel } from "@/lib/utils";
-import type { Database } from "@/types/database";
+import {
+  getValidTransitions,
+  STATUS_CONFIG,
+  type LeadState,
+} from "@/lib/leads/state-machine";
 
-type LeadStatus = Database["public"]["Enums"]["lead_status"];
-
-const BERATER_TRANSITIONS: Record<string, LeadStatus[]> = {
-  zugewiesen: ["kontaktversuch", "nicht_erreicht"],
-  kontaktversuch: ["qualifiziert", "nicht_erreicht", "nachfassen"],
-  qualifiziert: ["termin", "nachfassen", "verloren"],
-  termin: ["show", "no_show"],
-  show: ["abschluss", "nachfassen"],
-  no_show: ["nachfassen", "verloren"],
-  nachfassen: ["kontaktversuch", "termin", "verloren"],
-};
-
-const SETTER_TRANSITIONS: Record<string, LeadStatus[]> = {
-  zugewiesen: ["kontaktversuch", "nicht_erreicht"],
-  kontaktversuch: ["qualifiziert", "nicht_erreicht", "termin"],
-  nicht_erreicht: ["kontaktversuch"],
-  qualifiziert: ["termin"],
-};
-
-const DESTRUCTIVE_STATUSES: LeadStatus[] = ["verloren"];
+const DESTRUCTIVE_STATUSES: LeadState[] = ["verloren"];
 
 interface LeadStatusFormProps {
   currentStatus: string;
-  role: "berater" | "setter";
+  role: "admin" | "berater" | "setter";
   onSubmit: (newStatus: string, notiz?: string) => Promise<void>;
 }
 
@@ -60,11 +44,9 @@ export function LeadStatusForm({
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const transitions =
-    role === "berater" ? BERATER_TRANSITIONS : SETTER_TRANSITIONS;
-  const validStatuses = transitions[currentStatus] ?? [];
+  const validTransitions = getValidTransitions(currentStatus as LeadState, role);
 
-  if (validStatuses.length === 0) {
+  if (validTransitions.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         Keine Statusänderung möglich.
@@ -77,7 +59,7 @@ export function LeadStatusForm({
 
     // Check if destructive
     if (
-      DESTRUCTIVE_STATUSES.includes(selectedStatus as LeadStatus) &&
+      DESTRUCTIVE_STATUSES.includes(selectedStatus as LeadState) &&
       !showConfirm
     ) {
       setShowConfirm(true);
@@ -95,6 +77,9 @@ export function LeadStatusForm({
     }
   }
 
+  const selectedLabel =
+    STATUS_CONFIG[selectedStatus as LeadState]?.label ?? selectedStatus;
+
   return (
     <>
       <div className="space-y-3">
@@ -108,9 +93,9 @@ export function LeadStatusForm({
               <SelectValue placeholder="Status wählen..." />
             </SelectTrigger>
             <SelectContent>
-              {validStatuses.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {getStatusLabel(status)}
+              {validTransitions.map(({ state, label }) => (
+                <SelectItem key={state} value={state}>
+                  {label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -148,9 +133,9 @@ export function LeadStatusForm({
               Status bestätigen
             </DialogTitle>
             <DialogDescription>
-              Sind Sie sicher, dass Sie den Status auf &quot;
-              {getStatusLabel(selectedStatus)}&quot; ändern möchten? Diese
-              Aktion markiert den Lead als verloren.
+              Sind Sie sicher, dass Sie den Status auf &quot;{selectedLabel}
+              &quot; ändern möchten? Diese Aktion markiert den Lead als
+              verloren.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -172,7 +157,7 @@ export function LeadStatusForm({
                   data-icon="inline-start"
                 />
               )}
-              Bestaetigen
+              Bestätigen
             </Button>
           </DialogFooter>
         </DialogContent>

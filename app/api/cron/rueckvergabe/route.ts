@@ -41,8 +41,90 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch leads' }, { status: 500 })
   }
 
-  const stats = { reminders_sent: 0, reassigned: 0, admin_alerts: 0, errors: 0 }
+  const stats = { reminders_sent: 0, reassigned: 0, admin_alerts: 0, sla_breached: 0, errors: 0 }
 
+  // --- SLA Breach Detection ---
+  const { data: slaBreachedLeads, error: slaError } = await supabase
+    .from('leads')
+    .select('id, berater_id, vorname, nachname, previous_berater_ids, reassignment_count')
+    .eq('sla_status', 'active')
+    .lte('sla_deadline', now.toISOString())
+    .not('berater_id', 'is', null)
+
+  if (slaError) {
+    console.error('[rueckvergabe] Failed to fetch SLA breached leads:', slaError.message)
+  }
+
+  for (const slaLead of slaBreachedLeads ?? []) {
+    try {
+      const previousBeraterId = slaLead.berater_id!
+      const previousIds: string[] = Array.isArray(slaLead.previous_berater_ids)
+        ? [...slaLead.previous_berater_ids]
+        : []
+      if (!previousIds.includes(previousBeraterId)) {
+        previousIds.push(previousBeraterId)
+      }
+
+      // Mark SLA as breached and reset for redistribution
+      await supabase
+        .from('leads')
+        .update({
+          sla_status: 'breached',
+          status: 'neu',
+          berater_id: null,
+          zugewiesen_am: null,
+          accepted_at: null,
+          accepted_by: null,
+          reassignment_count: (slaLead.reassignment_count ?? 0) + 1,
+          previous_berater_ids: previousIds,
+        })
+        .eq('id', slaLead.id)
+
+      // Close old assignment
+      await supabase
+        .from('lead_assignments')
+        .update({ is_active: false })
+        .eq('lead_id', slaLead.id)
+        .eq('berater_id', previousBeraterId)
+        .eq('is_active', true)
+
+      // Decrement old berater leads_geliefert
+      const { data: oldBerater } = await supabase
+        .from('berater')
+        .select('leads_geliefert')
+        .eq('id', previousBeraterId)
+        .single()
+
+      if (oldBerater) {
+        await supabase
+          .from('berater')
+          .update({ leads_geliefert: Math.max(0, oldBerater.leads_geliefert - 1) })
+          .eq('id', previousBeraterId)
+      }
+
+      // Create activity
+      await supabase.from('lead_activities').insert({
+        lead_id: slaLead.id,
+        type: 'system',
+        title: 'SLA \u00fcberschritten - Lead umverteilt',
+        description: `SLA-Frist abgelaufen. Lead wird an neuen Berater umverteilt (vorheriger Berater: ${previousBeraterId})`,
+      })
+
+      // Redistribute
+      try {
+        await distributeLeadToBerater(slaLead.id)
+      } catch (redistributeErr) {
+        console.error(`[rueckvergabe] SLA redistribution failed for lead ${slaLead.id}:`, redistributeErr)
+      }
+
+      stats.sla_breached++
+    } catch (slaProcessErr) {
+      console.error(`[rueckvergabe] Error processing SLA breach for lead ${slaLead.id}:`, slaProcessErr)
+      stats.errors++
+    }
+  }
+
+  // --- Existing time-based reassignment logic ---
   for (const lead of leads ?? []) {
     const zugewiesenAm = new Date(lead.zugewiesen_am!).getTime()
 
