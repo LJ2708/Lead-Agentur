@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatEuro } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import type { Database } from "@/types/database"
 
 type NachkaufPaket = Database["public"]["Tables"]["nachkauf_pakete"]["Row"]
@@ -36,7 +37,9 @@ interface NachkaufFormData {
   beschreibung: string
   anzahl_leads: number
   preis_pro_lead: number // Euro
+  setter_aufpreis: number // Euro
   stripe_price_id: string
+  stripe_price_id_mit_setter: string
 }
 
 function NachkaufForm({
@@ -53,7 +56,9 @@ function NachkaufForm({
     beschreibung: initialData?.beschreibung ?? "",
     anzahl_leads: initialData?.anzahl_leads ?? 5,
     preis_pro_lead: initialData?.preis_pro_lead ?? 0,
+    setter_aufpreis: initialData?.setter_aufpreis ?? 0,
     stripe_price_id: initialData?.stripe_price_id ?? "",
+    stripe_price_id_mit_setter: initialData?.stripe_price_id_mit_setter ?? "",
   })
 
   const gesamtpreis = form.anzahl_leads * form.preis_pro_lead
@@ -122,11 +127,40 @@ function NachkaufForm({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="nk-setter">Setter-Aufpreis (EUR)</Label>
+        <Input
+          id="nk-setter"
+          type="number"
+          min={0}
+          step={0.01}
+          value={form.setter_aufpreis}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              setter_aufpreis: parseFloat(e.target.value) || 0,
+            })
+          }
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="nk-stripe">Stripe Price ID</Label>
         <Input
           id="nk-stripe"
           value={form.stripe_price_id}
           onChange={(e) => setForm({ ...form, stripe_price_id: e.target.value })}
+          placeholder="price_..."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="nk-stripe-setter">Stripe Price ID (mit Setter)</Label>
+        <Input
+          id="nk-stripe-setter"
+          value={form.stripe_price_id_mit_setter}
+          onChange={(e) =>
+            setForm({ ...form, stripe_price_id_mit_setter: e.target.value })
+          }
           placeholder="price_..."
         />
       </div>
@@ -196,7 +230,9 @@ export default function AdminNachkaufPage() {
       name: formData.name,
       anzahl_leads: formData.anzahl_leads,
       preis_pro_lead_cents: Math.round(formData.preis_pro_lead * 100),
+      setter_aufpreis_cents: Math.round(formData.setter_aufpreis * 100),
       stripe_price_id: formData.stripe_price_id || null,
+      stripe_price_id_mit_setter: formData.stripe_price_id_mit_setter || null,
     }
 
     if (editingPaket) {
@@ -205,10 +241,20 @@ export default function AdminNachkaufPage() {
         .update(payload)
         .eq("id", editingPaket.id)
 
-      if (error) console.error("Error updating nachkauf paket:", error)
+      if (error) {
+        console.error("Error updating nachkauf paket:", error)
+        toast.error("Fehler beim Aktualisieren des Nachkauf-Pakets.")
+      } else {
+        toast.success("Nachkauf-Paket erfolgreich aktualisiert.")
+      }
     } else {
       const { error } = await supabase.from("nachkauf_pakete").insert(payload)
-      if (error) console.error("Error creating nachkauf paket:", error)
+      if (error) {
+        console.error("Error creating nachkauf paket:", error)
+        toast.error("Fehler beim Erstellen des Nachkauf-Pakets.")
+      } else {
+        toast.success("Nachkauf-Paket erfolgreich erstellt.")
+      }
     }
 
     setSaving(false)
@@ -223,7 +269,14 @@ export default function AdminNachkaufPage() {
       .update({ is_active: !currentAktiv })
       .eq("id", paketId)
 
-    if (error) console.error("Error toggling nachkauf paket:", error)
+    if (error) {
+      console.error("Error toggling nachkauf paket:", error)
+      toast.error("Fehler beim Ändern des Paket-Status.")
+    } else {
+      toast.success(
+        currentAktiv ? "Nachkauf-Paket deaktiviert." : "Nachkauf-Paket aktiviert."
+      )
+    }
     fetchPakete()
   }
 
@@ -233,7 +286,9 @@ export default function AdminNachkaufPage() {
         beschreibung: "",
         anzahl_leads: editingPaket.anzahl_leads,
         preis_pro_lead: editingPaket.preis_pro_lead_cents / 100,
+        setter_aufpreis: editingPaket.setter_aufpreis_cents / 100,
         stripe_price_id: editingPaket.stripe_price_id ?? "",
+        stripe_price_id_mit_setter: editingPaket.stripe_price_id_mit_setter ?? "",
       }
     : undefined
 

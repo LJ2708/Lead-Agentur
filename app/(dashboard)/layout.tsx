@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -19,17 +20,65 @@ export default async function DashboardLayout({
   }
 
   // Fetch the user profile to get role and full name
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name")
     .eq("id", user.id)
     .single();
 
   if (!profile) {
-    redirect("/login");
+    // Profile doesn't exist yet — create it (e.g. after email confirmation)
+    const { error: upsertError } = await supabase.from("profiles").upsert({
+      id: user.id,
+      email: user.email!,
+      full_name: user.user_metadata?.full_name ?? user.email ?? "User",
+      phone: user.user_metadata?.phone ?? null,
+      role: "berater",
+    });
+
+    if (upsertError) {
+      console.error("Profil konnte nicht erstellt werden:", upsertError);
+      redirect("/login");
+    }
+
+    // Re-fetch the profile after creation
+    const { data: newProfile } = await supabase
+      .from("profiles")
+      .select("role, full_name")
+      .eq("id", user.id)
+      .single();
+
+    if (!newProfile) {
+      redirect("/login");
+    }
+
+    profile = newProfile;
   }
 
   const role = profile.role as "admin" | "teamleiter" | "setter" | "berater";
+
+  // Detect if the user is on the onboarding page
+  const headersList = await headers();
+  const pathname = headersList.get("x-next-pathname") ?? headersList.get("x-invoke-path") ?? "";
+  const isOnboardingRoute = pathname.startsWith("/onboarding");
+
+  // For berater: check if they have completed onboarding
+  if (role === "berater" && !isOnboardingRoute) {
+    const { data: berater } = await supabase
+      .from("berater")
+      .select("id, status")
+      .eq("profile_id", user.id)
+      .single();
+
+    if (!berater || berater.status === "pending") {
+      redirect("/onboarding");
+    }
+  }
+
+  // Onboarding route: render without sidebar/topbar (handled by onboarding layout)
+  if (isOnboardingRoute) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">

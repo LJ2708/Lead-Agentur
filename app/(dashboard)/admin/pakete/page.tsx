@@ -24,6 +24,7 @@ import { PaketForm, type PaketFormData } from "@/components/forms/PaketForm"
 import { formatEuro } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { Plus, Pencil, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import type { Database } from "@/types/database"
 
 type Paket = Database["public"]["Tables"]["lead_pakete"]["Row"]
@@ -77,7 +78,10 @@ export default function AdminPaketePage() {
       beschreibung: formData.beschreibung || null,
       leads_pro_monat: formData.leads_pro_monat,
       preis_pro_lead_cents: Math.round(formData.preis_pro_lead * 100),
+      mindestlaufzeit_monate: formData.mindestlaufzeit_monate,
+      setter_aufpreis_cents: Math.round(formData.setter_aufpreis * 100),
       stripe_price_id: formData.stripe_price_id || null,
+      stripe_price_id_mit_setter: formData.stripe_price_id_mit_setter || null,
     }
 
     if (editingPaket) {
@@ -88,12 +92,18 @@ export default function AdminPaketePage() {
 
       if (error) {
         console.error("Error updating paket:", error)
+        toast.error("Fehler beim Aktualisieren des Pakets.")
+      } else {
+        toast.success("Paket erfolgreich aktualisiert.")
       }
     } else {
       const { error } = await supabase.from("lead_pakete").insert(payload)
 
       if (error) {
         console.error("Error creating paket:", error)
+        toast.error("Fehler beim Erstellen des Pakets.")
+      } else {
+        toast.success("Paket erfolgreich erstellt.")
       }
     }
 
@@ -111,6 +121,11 @@ export default function AdminPaketePage() {
 
     if (error) {
       console.error("Error toggling paket:", error)
+      toast.error("Fehler beim Ändern des Paket-Status.")
+    } else {
+      toast.success(
+        currentAktiv ? "Paket deaktiviert." : "Paket aktiviert."
+      )
     }
 
     fetchPakete()
@@ -122,10 +137,10 @@ export default function AdminPaketePage() {
         beschreibung: editingPaket.beschreibung ?? "",
         leads_pro_monat: editingPaket.leads_pro_monat,
         preis_pro_lead: editingPaket.preis_pro_lead_cents / 100,
-        mindestlaufzeit_monate: 3,
-        setter_aufpreis: 0,
+        mindestlaufzeit_monate: editingPaket.mindestlaufzeit_monate,
+        setter_aufpreis: editingPaket.setter_aufpreis_cents / 100,
         stripe_price_id: editingPaket.stripe_price_id ?? "",
-        stripe_price_id_mit_setter: "",
+        stripe_price_id_mit_setter: editingPaket.stripe_price_id_mit_setter ?? "",
       }
     : undefined
 

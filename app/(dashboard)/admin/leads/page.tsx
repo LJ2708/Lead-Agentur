@@ -16,8 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, X, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { toast } from "sonner"
+import Link from "next/link"
 import type { Database } from "@/types/database"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -148,11 +149,19 @@ export default function AdminLeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Alle Leads</h1>
-        <p className="text-muted-foreground">
-          {totalCount} Leads insgesamt
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Alle Leads</h1>
+          <p className="text-muted-foreground">
+            {totalCount} Leads insgesamt
+          </p>
+        </div>
+        <Link href="/admin/leads/neu">
+          <Button>
+            <Plus className="mr-1 h-4 w-4" />
+            Neuer Lead
+          </Button>
+        </Link>
       </div>
 
       {/* Filters */}

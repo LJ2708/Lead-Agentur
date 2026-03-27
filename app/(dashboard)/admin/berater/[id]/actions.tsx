@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Pause, Play, Settings, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import type { Database } from "@/types/database"
 
 interface BeraterDetailActionsProps {
@@ -41,15 +42,31 @@ export function BeraterDetailActions({
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  const STATUS_LABELS: Record<string, string> = {
+    aktiv: "Aktiv",
+    pausiert: "Pausiert",
+    inaktiv: "Inaktiv",
+    pending: "Ausstehend",
+  }
+
   async function handleStatusChange(newStatus: string) {
     setLoading(true)
     const { error } = await supabase
       .from("berater")
-      .update({ status: newStatus as Database["public"]["Enums"]["berater_status"] })
+      .update({
+        status: newStatus as Database["public"]["Enums"]["berater_status"],
+        ...(newStatus === "pausiert" ? { pausiert_seit: new Date().toISOString() } : {}),
+        ...(newStatus === "aktiv" ? { pausiert_seit: null } : {}),
+      })
       .eq("id", beraterId)
 
     if (error) {
       console.error("Error updating status:", error)
+      toast.error("Fehler beim Aktualisieren des Status.")
+    } else {
+      toast.success(
+        `Berater-Status auf "${STATUS_LABELS[newStatus] ?? newStatus}" gesetzt.`
+      )
     }
 
     setLoading(false)

@@ -15,6 +15,6 @@ export const config = {
      * - api/webhooks/* (webhook endpoints)
      * - api/cron/* (cron endpoints)
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/.*|api/cron/.*).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/.*|api/cron/.*|api/seed.*).*)",
   ],
 };

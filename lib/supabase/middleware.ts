@@ -3,6 +3,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { type Database } from "@/types/database"
 
 export async function updateSession(request: NextRequest) {
+  // Pass pathname to server components via request header
+  request.headers.set("x-next-pathname", request.nextUrl.pathname)
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -51,6 +54,7 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !request.nextUrl.pathname.startsWith("/login") &&
+    !request.nextUrl.pathname.startsWith("/register") &&
     !request.nextUrl.pathname.startsWith("/auth") &&
     !request.nextUrl.pathname.startsWith("/api/webhooks") &&
     request.nextUrl.pathname !== "/"
