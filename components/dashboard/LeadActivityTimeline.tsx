@@ -54,13 +54,13 @@ const ACTIVITY_COLORS: Record<string, string> = {
 };
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  status_change: "Status geaendert",
+  status_change: "Status geändert",
   anruf: "Anruf",
   email: "E-Mail",
   whatsapp: "WhatsApp",
   notiz: "Notiz",
   zuweisung: "Zuweisung",
-  rueckvergabe: "Rueckvergabe",
+  rueckvergabe: "Rückvergabe",
   termin_gebucht: "Termin gebucht",
   termin_abgesagt: "Termin abgesagt",
   nachkauf: "Nachkauf",

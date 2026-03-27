@@ -102,7 +102,7 @@ export default function BeraterLeadsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Meine Leads</h1>
         <p className="text-muted-foreground">
-          Alle Ihnen zugewiesenen Leads im Ueberblick
+          Alle Ihnen zugewiesenen Leads im Überblick
         </p>
       </div>
 

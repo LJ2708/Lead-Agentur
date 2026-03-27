@@ -105,7 +105,7 @@ export default async function BeraterDashboardPage() {
             Willkommen, {(profile as any).full_name?.split(" ")[0] ?? "Berater"}
           </h1>
           <p className="text-muted-foreground">
-            Ihr Lead-Dashboard im Ueberblick
+            Ihr Lead-Dashboard im Überblick
           </p>
         </div>
         <Button asChild>
@@ -121,7 +121,7 @@ export default async function BeraterDashboardPage() {
         <StatsCard
           title="Kontingent"
           value={`${geliefert} / ${kontingent}`}
-          description={`${pacing.prozent}% ausgeschoepft`}
+          description={`${pacing.prozent}% ausgeschöpft`}
           icon={BarChart3}
         />
         <StatsCard
@@ -133,7 +133,7 @@ export default async function BeraterDashboardPage() {
         <StatsCard
           title="Termine diese Woche"
           value={termineCount}
-          description="Geplante Gespraeche"
+          description="Geplante Gespräche"
           icon={CalendarDays}
         />
         <StatsCard

@@ -97,12 +97,12 @@ export default function BeraterNachkaufPage() {
             Leads nachkaufen
           </h1>
           <p className="text-muted-foreground">
-            Erweitern Sie Ihr Kontingent mit zusaetzlichen Leads
+            Erweitern Sie Ihr Kontingent mit zusätzlichen Leads
           </p>
         </div>
         <Button onClick={() => setShowModal(true)}>
           <ShoppingCart className="h-4 w-4" data-icon="inline-start" />
-          Paket waehlen
+          Paket wählen
         </Button>
       </div>
 
@@ -112,7 +112,7 @@ export default function BeraterNachkaufPage() {
             <div className="flex flex-col items-center gap-3 text-center">
               <Package className="h-12 w-12 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                Derzeit sind keine Nachkauf-Pakete verfuegbar.
+                Derzeit sind keine Nachkauf-Pakete verfügbar.
               </p>
             </div>
           </CardContent>

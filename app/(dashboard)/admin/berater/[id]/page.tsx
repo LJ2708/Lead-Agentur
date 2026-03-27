@@ -28,13 +28,13 @@ interface PageProps {
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  status_change: "Statusaenderung",
+  status_change: "Statusänderung",
   anruf: "Anruf",
   email: "E-Mail",
   whatsapp: "WhatsApp",
   notiz: "Notiz",
   zuweisung: "Zuweisung",
-  rueckvergabe: "Rueckvergabe",
+  rueckvergabe: "Rückvergabe",
   termin_gebucht: "Termin gebucht",
   termin_abgesagt: "Termin abgesagt",
   nachkauf: "Nachkauf",

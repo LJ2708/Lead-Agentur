@@ -217,7 +217,7 @@ export default function AdminLeadsPage() {
                   onClick={clearFilters}
                 >
                   <X className="mr-1 h-3 w-3" />
-                  Filter zuruecksetzen
+                  Filter zurücksetzen
                 </Button>
               )}
             </div>
@@ -254,7 +254,7 @@ export default function AdminLeadsPage() {
               disabled={page === 0}
             >
               <ChevronLeft className="h-4 w-4" />
-              Zurueck
+              Zurück
             </Button>
             <Button
               variant="outline"

@@ -46,7 +46,7 @@ export function BudgetConfigEditor() {
               onChange={(e) => setMetaCpl(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Durchschnittliche Kosten pro Lead ueber Meta Ads
+              Durchschnittliche Kosten pro Lead über Meta Ads
             </p>
           </div>
 
@@ -77,7 +77,7 @@ export function BudgetConfigEditor() {
               onChange={(e) => setSetterKosten(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Interne Kosten pro Lead fuer Setter
+              Interne Kosten pro Lead für Setter
             </p>
           </div>
         </div>

@@ -67,7 +67,7 @@ export function LeadStatusForm({
   if (validStatuses.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Keine Statusaenderung moeglich.
+        Keine Statusänderung möglich.
       </p>
     );
   }
@@ -105,7 +105,7 @@ export function LeadStatusForm({
             onValueChange={(val) => setSelectedStatus(val ?? "")}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Status waehlen..." />
+              <SelectValue placeholder="Status wählen..." />
             </SelectTrigger>
             <SelectContent>
               {validStatuses.map((status) => (
@@ -122,7 +122,7 @@ export function LeadStatusForm({
           <Textarea
             value={notiz}
             onChange={(e) => setNotiz(e.target.value)}
-            placeholder="Notiz zur Statusaenderung..."
+            placeholder="Notiz zur Statusänderung..."
             rows={2}
           />
         </div>
@@ -135,7 +135,7 @@ export function LeadStatusForm({
           {isLoading && (
             <Loader2 className="h-4 w-4 animate-spin" data-icon="inline-start" />
           )}
-          Status aendern
+          Status ändern
         </Button>
       </div>
 
@@ -145,11 +145,11 @@ export function LeadStatusForm({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Status bestaetigen
+              Status bestätigen
             </DialogTitle>
             <DialogDescription>
               Sind Sie sicher, dass Sie den Status auf &quot;
-              {getStatusLabel(selectedStatus)}&quot; aendern moechten? Diese
+              {getStatusLabel(selectedStatus)}&quot; ändern möchten? Diese
               Aktion markiert den Lead als verloren.
             </DialogDescription>
           </DialogHeader>

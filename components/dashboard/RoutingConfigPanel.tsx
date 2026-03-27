@@ -50,7 +50,7 @@ const CONFIG_FIELDS = [
     name: "max_kontaktversuche",
     label: "Max. Kontaktversuche",
     description:
-      "Maximale Anzahl an Kontaktversuchen bevor ein Lead zurueckgegeben wird.",
+      "Maximale Anzahl an Kontaktversuchen bevor ein Lead zurückgegeben wird.",
     unit: "",
   },
 ] as const
@@ -134,7 +134,7 @@ export default function RoutingConfigPanel({
           Routing-Konfiguration
         </CardTitle>
         <CardDescription>
-          Zeitliche Regeln fuer die automatische Lead-Verteilung und
+          Zeitliche Regeln für die automatische Lead-Verteilung und
           Eskalation.
         </CardDescription>
       </CardHeader>

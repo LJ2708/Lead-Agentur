@@ -30,7 +30,7 @@ export default async function AdminBudgetPage() {
           Budget-Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Finanzuebersicht fuer den aktuellen Monat.
+          Finanzübersicht für den aktuellen Monat.
         </p>
       </div>
 

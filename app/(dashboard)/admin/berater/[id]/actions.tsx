@@ -103,20 +103,20 @@ export function BeraterDetailActions({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Settings className="mr-1 h-3 w-3" />
-            Paket aendern
+            Paket ändern
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Paket aendern</DialogTitle>
+            <DialogTitle>Paket ändern</DialogTitle>
             <DialogDescription>
-              Aenderungen am Paket werden erst nach dem naechsten
+              Änderungen am Paket werden erst nach dem nächsten
               Abrechnungszeitraum wirksam.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Paket-Aenderungen muessen ueber Stripe vorgenommen werden.
+              Paket-Änderungen müssen über Stripe vorgenommen werden.
               Navigieren Sie zum Stripe-Dashboard, um die Subscription zu
               aktualisieren.
             </p>
@@ -126,7 +126,7 @@ export function BeraterDetailActions({
               variant="outline"
               onClick={() => setPaketDialogOpen(false)}
             >
-              Schliessen
+              Schließen
             </Button>
           </DialogFooter>
         </DialogContent>

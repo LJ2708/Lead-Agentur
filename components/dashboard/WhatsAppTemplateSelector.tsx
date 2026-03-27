@@ -18,15 +18,15 @@ interface WhatsAppTemplateSelectorProps {
 
 const TEMPLATE_PREVIEW_TEXT: Record<WhatsAppTemplateName, string> = {
   lead_willkommen:
-    "Hallo {{lead_vorname}}, vielen Dank fuer Ihr Interesse! Ihr persoenlicher Berater {{berater_name}} wird sich in Kuerze bei Ihnen melden. Sie erreichen ihn auch unter {{berater_telefon}}.",
+    "Hallo {{lead_vorname}}, vielen Dank für Ihr Interesse! Ihr persönlicher Berater {{berater_name}} wird sich in Kürze bei Ihnen melden. Sie erreichen ihn auch unter {{berater_telefon}}.",
   termin_bestaetigung:
-    "Hallo {{lead_name}}, Ihr Termin am {{datum}} um {{uhrzeit}} mit {{berater_name}} ist bestaetigt. Wir freuen uns auf das Gespraech!",
+    "Hallo {{lead_name}}, Ihr Termin am {{datum}} um {{uhrzeit}} mit {{berater_name}} ist bestätigt. Wir freuen uns auf das Gespräch!",
   termin_erinnerung_24h:
     "Hallo {{lead_name}}, zur Erinnerung: Morgen am {{datum}} um {{uhrzeit}} findet Ihr Termin mit {{berater_name}} statt.",
   termin_erinnerung_1h:
     "Hallo {{lead_name}}, in einer Stunde ({{uhrzeit}}) beginnt Ihr Termin mit {{berater_name}}. Bis gleich!",
   no_show_nachfassung:
-    "Hallo {{lead_name}}, leider haben wir Sie heute nicht erreicht. {{berater_name}} wuerde sich freuen, einen neuen Termin zu vereinbaren: {{neuer_termin_link}}",
+    "Hallo {{lead_name}}, leider haben wir Sie heute nicht erreicht. {{berater_name}} würde sich freuen, einen neuen Termin zu vereinbaren: {{neuer_termin_link}}",
   follow_up:
     "Hallo {{lead_name}}, hier meldet sich {{berater_name}} nochmals. {{nachricht}}",
 }
@@ -48,7 +48,7 @@ export default function WhatsAppTemplateSelector({
 
   async function handleSend() {
     if (!selectedTemplate) {
-      toast.error("Bitte waehlen Sie eine Vorlage aus.")
+      toast.error("Bitte wählen Sie eine Vorlage aus.")
       return
     }
 
@@ -106,7 +106,7 @@ export default function WhatsAppTemplateSelector({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="template-select">Vorlage auswaehlen</Label>
+          <Label htmlFor="template-select">Vorlage auswählen</Label>
           <select
             id="template-select"
             value={selectedTemplate}
@@ -116,7 +116,7 @@ export default function WhatsAppTemplateSelector({
             disabled={isSending}
             className="flex h-8 w-full items-center rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">-- Vorlage waehlen --</option>
+            <option value="">-- Vorlage wählen --</option>
             {templateEntries.map(([key, template]) => (
               <option key={key} value={key}>
                 {template.description}

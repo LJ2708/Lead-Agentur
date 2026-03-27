@@ -253,7 +253,7 @@ export default function BeraterSettingsPage() {
               <p className="text-sm text-muted-foreground">
                 {isPausiert
                   ? "Neue Leads werden wieder zugestellt"
-                  : "Keine neuen Leads waehrend der Pause"}
+                  : "Keine neuen Leads während der Pause"}
               </p>
             </div>
             <Button
@@ -283,7 +283,7 @@ export default function BeraterSettingsPage() {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               Ihr Teamleiter verwaltet die Lead-Zuweisung und
-              Qualitaetskontrolle.
+              Qualitätskontrolle.
             </p>
           </CardContent>
         </Card>
@@ -308,8 +308,8 @@ export default function BeraterSettingsPage() {
             </DialogTitle>
             <DialogDescription>
               {isPausiert
-                ? "Sie erhalten wieder neue Leads gemaess Ihrem Kontingent."
-                : "Waehrend der Pause werden Ihnen keine neuen Leads zugewiesen. Bestehende Leads bleiben erhalten."}
+                ? "Sie erhalten wieder neue Leads gemäß Ihrem Kontingent."
+                : "Während der Pause werden Ihnen keine neuen Leads zugewiesen. Bestehende Leads bleiben erhalten."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -355,10 +355,10 @@ function getSubscriptionLabel(status: string): {
         color: "bg-yellow-100 text-yellow-800",
       };
     case "canceled":
-      return { label: "Gekuendigt", color: "bg-red-100 text-red-800" };
+      return { label: "Gekündigt", color: "bg-red-100 text-red-800" };
     case "incomplete":
       return {
-        label: "Unvollstaendig",
+        label: "Unvollständig",
         color: "bg-orange-100 text-orange-800",
       };
     default:

@@ -245,7 +245,7 @@ export default function AdminNachkaufPage() {
             Nachkauf-Pakete
           </h1>
           <p className="text-muted-foreground">
-            Einmalkauf-Pakete fuer zusaetzliche Leads.
+            Einmalkauf-Pakete für zusätzliche Leads.
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

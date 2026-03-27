@@ -131,8 +131,8 @@ export default function BeraterLeadDetailPage() {
     await supabase.from("lead_activities").insert({
       lead_id: lead.id,
       type: "status_change",
-      title: "Status geaendert",
-      description: `Status geaendert: ${getStatusLabel(lead.status)} → ${getStatusLabel(newStatus)}${notiz ? ` - ${notiz}` : ""}`,
+      title: "Status geändert",
+      description: `Status geändert: ${getStatusLabel(lead.status)} → ${getStatusLabel(newStatus)}${notiz ? ` - ${notiz}` : ""}`,
       old_value: lead.status,
       new_value: newStatus,
       created_by: userId,
@@ -266,7 +266,7 @@ export default function BeraterLeadDetailPage() {
           {/* Status Change */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Status aendern</CardTitle>
+              <CardTitle className="text-base">Status ändern</CardTitle>
             </CardHeader>
             <CardContent>
               <LeadStatusForm

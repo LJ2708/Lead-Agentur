@@ -75,7 +75,7 @@ export function NachkaufModal({
         <DialogHeader>
           <DialogTitle>Leads nachkaufen</DialogTitle>
           <DialogDescription>
-            Waehlen Sie ein Paket und buchen Sie zusaetzliche Leads.
+            Wählen Sie ein Paket und buchen Sie zusätzliche Leads.
           </DialogDescription>
         </DialogHeader>
 

@@ -114,7 +114,7 @@ export function LeadDetail({
             )}
             {lead.naechste_erinnerung && (
               <div>
-                <span className="text-muted-foreground">Naechste Erinnerung:</span>{" "}
+                <span className="text-muted-foreground">Nächste Erinnerung:</span>{" "}
                 <span className="font-medium">{formatDate(lead.naechste_erinnerung)}</span>
               </div>
             )}

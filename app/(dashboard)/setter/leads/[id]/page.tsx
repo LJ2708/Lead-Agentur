@@ -129,8 +129,8 @@ export default function SetterLeadDetailPage() {
     await supabase.from("lead_activities").insert({
       lead_id: lead.id,
       type: "status_change",
-      title: "Status geaendert",
-      description: `Status geaendert: ${getStatusLabel(lead.status)} → ${getStatusLabel(newStatus)}${notiz ? ` - ${notiz}` : ""}`,
+      title: "Status geändert",
+      description: `Status geändert: ${getStatusLabel(lead.status)} → ${getStatusLabel(newStatus)}${notiz ? ` - ${notiz}` : ""}`,
       old_value: lead.status,
       new_value: newStatus,
       created_by: userId,
@@ -164,7 +164,7 @@ export default function SetterLeadDetailPage() {
       lead_id: lead.id,
       type: "anruf",
       title: "Anruf",
-      description: "Anrufversuch durchgefuehrt",
+      description: "Anrufversuch durchgeführt",
       created_by: userId,
     });
 
@@ -266,7 +266,7 @@ export default function SetterLeadDetailPage() {
                   <Separator />
                   <div className="text-sm">
                     <p className="mb-1 font-medium text-muted-foreground">
-                      Zusaetzliche Felder
+                      Zusätzliche Felder
                     </p>
                     <p className="whitespace-pre-wrap">{JSON.stringify(lead.custom_fields, null, 2)}</p>
                   </div>
@@ -314,7 +314,7 @@ export default function SetterLeadDetailPage() {
           {/* Status Change */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Status aendern</CardTitle>
+              <CardTitle className="text-base">Status ändern</CardTitle>
             </CardHeader>
             <CardContent>
               <LeadStatusForm
