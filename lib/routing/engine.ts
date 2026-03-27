@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { berechnePacingInfo, maxLeadsHeute } from '@/lib/routing/pacing'
+import { getBeraterAvailability } from '@/lib/availability/engine'
 import { startOfDay } from 'date-fns'
 
 const supabaseAdmin = createAdminClient()
@@ -20,18 +21,21 @@ interface BeraterCandidate {
 
 /**
  * Main lead distribution engine.
- * Assigns a lead to the most appropriate berater based on pacing and capacity.
+ * Assigns a lead to the most appropriate berater based on availability, pacing and capacity.
  *
  * Algorithm:
+ * 0. Filter by AVAILABILITY first (working hours + override + not DND)
  * 1. Load all active berater (status='aktiv') with subscription info
  * 2. For each berater, calculate pacing score using leads_kontingent
  * 3. Priority order:
  *    PRIO 1: Berater with largest positive pacing difference (most behind)
  *    Tiebreak: Oldest letzte_zuweisung
  *    PRIO 2: Berater with smallest surplus (if all ahead of schedule)
- * 4. No berater available -> set lead status to 'warteschlange', return null
+ * 4. No berater available -> set lead to holding queue, return null
  * 5. On assignment:
  *    - Update leads: berater_id, status='zugewiesen', zugewiesen_am=now()
+ *    - Set queue_status='assigned', lead_ready_at=now()
+ *    - Start SLA: sla_deadline = now() + 30min, sla_status = 'active'
  *    - Increment berater.leads_geliefert
  *    - Create lead_assignments record
  *    - Create lead_activities record
@@ -53,15 +57,32 @@ export async function distributeLeadToBerater(
   }
 
   if (!beraterList || beraterList.length === 0) {
-    await setLeadToWarteschlange(leadId)
+    await setLeadToHolding(leadId, 'Kein Berater verfuegbar')
     return null
   }
 
-  // 2. Build candidate list with anti-clumping check
+  // 2. Filter by availability (working hours + override)
+  const availableBeraterIds = new Set<string>()
+  for (const b of beraterList) {
+    const availability = await getBeraterAvailability(b.id)
+    if (availability.status === 'available') {
+      availableBeraterIds.add(b.id)
+    }
+  }
+
+  if (availableBeraterIds.size === 0) {
+    await setLeadToHolding(leadId, 'Kein Berater verfuegbar')
+    return null
+  }
+
+  // 3. Build candidate list with anti-clumping check (only available berater)
   const todayStart = startOfDay(jetzt).toISOString()
   const candidates: BeraterCandidate[] = []
 
   for (const b of beraterList) {
+    // Must be available
+    if (!availableBeraterIds.has(b.id)) continue
+
     // Must not have exceeded leads_gesamt cap
     if (b.leads_geliefert >= b.leads_gesamt) continue
 
@@ -96,11 +117,11 @@ export async function distributeLeadToBerater(
   }
 
   if (candidates.length === 0) {
-    await setLeadToWarteschlange(leadId)
+    await setLeadToHolding(leadId, 'Kein Berater verfuegbar')
     return null
   }
 
-  // 3. Score and sort candidates by pacing
+  // 4. Score and sort candidates by pacing
   const scored = candidates.map((c) => {
     const pacing = berechnePacingInfo(c.kontingent, c.geliefert, jetzt)
     return { ...c, pacing, pacingDiff: pacing.differenz }
@@ -140,16 +161,21 @@ function compareLetzteZuweisung(a: string | null, b: string | null): number {
 }
 
 /**
- * Set lead status to warteschlange when no berater is available.
+ * Set lead to holding queue when no berater is available.
+ * Does NOT start SLA timer.
  */
-async function setLeadToWarteschlange(leadId: string): Promise<void> {
+async function setLeadToHolding(leadId: string, reason: string): Promise<void> {
   const { error } = await supabaseAdmin
     .from('leads')
-    .update({ status: 'warteschlange' })
+    .update({
+      status: 'warteschlange',
+      queue_status: 'holding',
+      holding_reason: reason,
+    })
     .eq('id', leadId)
 
   if (error) {
-    console.error(`[routing] Failed to set lead ${leadId} to warteschlange:`, error.message)
+    console.error(`[routing] Failed to set lead ${leadId} to holding:`, error.message)
     throw new Error(`Failed to update lead status: ${error.message}`)
   }
 
@@ -157,7 +183,7 @@ async function setLeadToWarteschlange(leadId: string): Promise<void> {
     lead_id: leadId,
     type: 'status_change',
     title: 'Warteschlange',
-    description: 'Lead in Warteschlange verschoben - kein Berater verfuegbar',
+    description: `Lead in Warteschlange verschoben - ${reason}`,
   })
 }
 
@@ -172,13 +198,21 @@ async function assignLead(
 ): Promise<DistributionResult> {
   const jetztISO = jetzt.toISOString()
 
-  // Update lead record
+  // SLA: 30 minutes from now
+  const slaDeadline = new Date(jetzt.getTime() + 30 * 60 * 1000).toISOString()
+
+  // Update lead record with queue status and SLA
   const { error: leadError } = await supabaseAdmin
     .from('leads')
     .update({
       berater_id: candidate.id,
       status: 'zugewiesen',
       zugewiesen_am: jetztISO,
+      queue_status: 'assigned',
+      lead_ready_at: jetztISO,
+      holding_reason: null,
+      sla_deadline: slaDeadline,
+      sla_status: 'active',
     })
     .eq('id', leadId)
 

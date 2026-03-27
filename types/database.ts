@@ -155,6 +155,10 @@ export type Database = {
           pausiert_seit: string | null
           letzte_zuweisung: string | null
           kontingent_reset_at: string | null
+          availability_status: string | null
+          availability_override: boolean | null
+          availability_override_until: string | null
+          do_not_disturb: boolean | null
           created_at: string
           updated_at: string
         }
@@ -178,6 +182,10 @@ export type Database = {
           pausiert_seit?: string | null
           letzte_zuweisung?: string | null
           kontingent_reset_at?: string | null
+          availability_status?: string | null
+          availability_override?: boolean | null
+          availability_override_until?: string | null
+          do_not_disturb?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -201,6 +209,10 @@ export type Database = {
           pausiert_seit?: string | null
           letzte_zuweisung?: string | null
           kontingent_reset_at?: string | null
+          availability_status?: string | null
+          availability_override?: boolean | null
+          availability_override_until?: string | null
+          do_not_disturb?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -269,6 +281,9 @@ export type Database = {
           callback_at: string | null
           reassignment_count: number
           previous_berater_ids: string[] | null
+          queue_status: string | null
+          lead_ready_at: string | null
+          holding_reason: string | null
           created_at: string
           updated_at: string
         }
@@ -312,6 +327,9 @@ export type Database = {
           callback_at?: string | null
           reassignment_count?: number
           previous_berater_ids?: string[] | null
+          queue_status?: string | null
+          lead_ready_at?: string | null
+          holding_reason?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -355,6 +373,9 @@ export type Database = {
           callback_at?: string | null
           reassignment_count?: number
           previous_berater_ids?: string[] | null
+          queue_status?: string | null
+          lead_ready_at?: string | null
+          holding_reason?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -371,6 +392,47 @@ export type Database = {
             columns: ["setter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      working_hours: {
+        Row: {
+          id: string
+          berater_id: string
+          day_of_week: number
+          start_time: string
+          end_time: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          berater_id: string
+          day_of_week: number
+          start_time: string
+          end_time: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          berater_id?: string
+          day_of_week?: number
+          start_time?: string
+          end_time?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "working_hours_berater_id_fkey"
+            columns: ["berater_id"]
+            isOneToOne: false
+            referencedRelation: "berater"
             referencedColumns: ["id"]
           },
         ]

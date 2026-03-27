@@ -13,11 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { AvailabilityToggle } from "@/components/dashboard/AvailabilityToggle";
 
 interface TopbarUser {
   email: string;
   full_name: string;
   role: string;
+  beraterId?: string;
 }
 
 interface TopbarProps {
@@ -47,6 +49,10 @@ export function Topbar({ user }: TopbarProps) {
 
       {/* Right side - user menu */}
       <div className="flex items-center gap-3">
+        {user.role === "berater" && user.beraterId && (
+          <AvailabilityToggle beraterId={user.beraterId} compact />
+        )}
+
         <Badge variant="secondary" className="text-xs capitalize">
           {roleLabelMap[user.role] ?? user.role}
         </Badge>

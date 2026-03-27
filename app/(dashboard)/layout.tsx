@@ -80,6 +80,17 @@ export default async function DashboardLayout({
     return <>{children}</>;
   }
 
+  // Get berater ID for topbar availability toggle
+  let topbarBeraterId: string | undefined;
+  if (role === "berater") {
+    const { data: beraterForTopbar } = await supabase
+      .from("berater")
+      .select("id")
+      .eq("profile_id", user.id)
+      .single();
+    topbarBeraterId = beraterForTopbar?.id ?? undefined;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar role={role} />
@@ -89,6 +100,7 @@ export default async function DashboardLayout({
             email: user.email ?? "",
             full_name: profile.full_name ?? user.email ?? "User",
             role,
+            beraterId: topbarBeraterId,
           }}
         />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>

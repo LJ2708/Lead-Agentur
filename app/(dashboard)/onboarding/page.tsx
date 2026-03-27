@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   Package,
   Phone,
+  Clock,
   CreditCard,
   PartyPopper,
   Loader2,
@@ -27,6 +28,7 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
+import { WorkingHoursEditor } from "@/components/dashboard/WorkingHoursEditor";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -45,13 +47,14 @@ interface LeadPaket {
   is_active: boolean;
 }
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 const STEP_META: { step: Step; label: string; icon: React.ElementType }[] = [
   { step: 1, label: "Paketauswahl", icon: Package },
   { step: 2, label: "Setter-Addon", icon: Phone },
-  { step: 3, label: "Zusammenfassung", icon: CreditCard },
-  { step: 4, label: "Erfolg", icon: PartyPopper },
+  { step: 3, label: "Arbeitszeiten", icon: Clock },
+  { step: 4, label: "Zusammenfassung", icon: CreditCard },
+  { step: 5, label: "Erfolg", icon: PartyPopper },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -126,13 +129,16 @@ export default function OnboardingPage() {
   const [hatSetter, setHatSetter] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [beraterId, setBeraterId] = useState<string | null>(null);
+  const [workingHoursSaved, setWorkingHoursSaved] = useState(false);
 
   const selectedPaket = pakete.find((p) => p.id === selectedPaketId) ?? null;
 
-  // Fetch active pakete on mount
+  // Fetch active pakete and berater ID on mount
   useEffect(() => {
-    async function fetchPakete() {
+    async function fetchInitialData() {
       const supabase = createClient();
+
       const { data, error } = await supabase
         .from("lead_pakete")
         .select("*")
@@ -146,8 +152,23 @@ export default function OnboardingPage() {
         setPakete(data ?? []);
       }
       setLoadingPakete(false);
+
+      // Try to fetch existing berater ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: beraterData } = await supabase
+          .from("berater")
+          .select("id")
+          .eq("profile_id", user.id)
+          .single();
+        if (beraterData) {
+          setBeraterId(beraterData.id);
+        }
+      }
     }
-    fetchPakete();
+    fetchInitialData();
   }, []);
 
   /* ---------------------------------------------------------------------- */
@@ -192,7 +213,18 @@ export default function OnboardingPage() {
         return;
       }
 
-      setStep(4);
+      // Fetch the berater ID for working hours
+      const { data: beraterData } = await supabase
+        .from("berater")
+        .select("id")
+        .eq("profile_id", user.id)
+        .single();
+
+      if (beraterData) {
+        setBeraterId(beraterData.id);
+      }
+
+      setStep(5);
     } catch {
       setError("Ein unerwarteter Fehler ist aufgetreten.");
     } finally {
@@ -494,9 +526,67 @@ export default function OnboardingPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/*  Step 3 — Zusammenfassung & Checkout                              */}
+      {/*  Step 3 — Arbeitszeiten                                           */}
       {/* ------------------------------------------------------------------ */}
-      {step === 3 && selectedPaket && (
+      {step === 3 && (
+        <div>
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Arbeitszeiten festlegen
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              Legen Sie fest, wann Sie für neue Leads erreichbar sind.
+              Außerhalb dieser Zeiten werden keine Leads zugewiesen.
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-2xl space-y-6">
+            {beraterId ? (
+              <WorkingHoursEditor
+                beraterId={beraterId}
+                onSave={() => setWorkingHoursSaved(true)}
+              />
+            ) : (
+              <div className="text-center text-sm text-muted-foreground">
+                <p>
+                  Arbeitszeiten werden nach der Paketaktivierung gespeichert.
+                  Sie können die Standardzeiten (Mo-Fr 09:00-18:00) später
+                  anpassen.
+                </p>
+                <Button
+                  className="mt-4 bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+                  onClick={() => {
+                    setWorkingHoursSaved(true)
+                  }}
+                >
+                  Mit Standardzeiten fortfahren
+                </Button>
+              </div>
+            )}
+
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" size="lg" onClick={() => setStep(2)}>
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Zurück
+              </Button>
+              <Button
+                size="lg"
+                className="bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+                disabled={!workingHoursSaved && !!beraterId}
+                onClick={() => setStep(4)}
+              >
+                Weiter
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/*  Step 4 — Zusammenfassung & Checkout                              */}
+      {/* ------------------------------------------------------------------ */}
+      {step === 4 && selectedPaket && (
         <div>
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-gray-900">Zusammenfassung</h2>
@@ -605,7 +695,7 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex justify-start pt-2">
-              <Button variant="ghost" onClick={() => setStep(2)}>
+              <Button variant="ghost" onClick={() => setStep(3)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Zurück
               </Button>
@@ -615,9 +705,9 @@ export default function OnboardingPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/*  Step 4 — Erfolg                                                   */}
+      {/*  Step 5 — Erfolg                                                   */}
       {/* ------------------------------------------------------------------ */}
-      {step === 4 && (
+      {step === 5 && (
         <div className="flex flex-col items-center py-12 text-center">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
             <PartyPopper className="h-10 w-10 text-green-600" />

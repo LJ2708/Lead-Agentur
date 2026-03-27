@@ -17,18 +17,17 @@ import {
 import { BeraterForm } from "@/components/forms/BeraterForm";
 import {
   User,
-
-
   Pause,
   Play,
   AlertTriangle,
   Loader2,
   CheckCircle2,
-
-
+  Clock,
   Package,
   Users,
 } from "lucide-react";
+import { WorkingHoursEditor } from "@/components/dashboard/WorkingHoursEditor";
+import { AvailabilityToggle } from "@/components/dashboard/AvailabilityToggle";
 import { cn } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 
@@ -270,6 +269,28 @@ export default function BeraterSettingsPage() {
               )}
               {isPausiert ? "Fortsetzen" : "Pausieren"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Arbeitszeiten & Verfuegbarkeit */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <CardTitle>Arbeitszeiten & Verfuegbarkeit</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h3 className="mb-3 text-sm font-medium text-gray-700">
+              Aktueller Status
+            </h3>
+            <AvailabilityToggle beraterId={berater.id} />
+          </div>
+          <Separator />
+          <div>
+            <WorkingHoursEditor beraterId={berater.id} />
           </div>
         </CardContent>
       </Card>
