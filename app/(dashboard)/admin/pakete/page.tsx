@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { createBrowserClient } from "@supabase/ssr"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -58,6 +58,7 @@ export default function AdminPaketePage() {
 
   useEffect(() => {
     fetchPakete()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function openCreate() {

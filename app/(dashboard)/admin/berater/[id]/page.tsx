@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Separator } from "@/components/ui/separator"
+
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge"
 import { formatDate, formatEuro } from "@/lib/utils"
 import { cn } from "@/lib/utils"

@@ -13,13 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+
 import { Pause, Play, Settings, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import type { Database } from "@/types/database"

@@ -42,7 +42,8 @@ export function LeadTable({
   leads,
   showBerater = false,
   showSetter = false,
-  onStatusChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onStatusChange: _onStatusChange,
 }: LeadTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("created_at")
   const [sortDir, setSortDir] = useState<SortDir>("desc")

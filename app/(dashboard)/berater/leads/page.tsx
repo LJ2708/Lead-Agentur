@@ -77,13 +77,14 @@ export default function BeraterLeadsPage() {
       .order("created_at", { ascending: false });
 
     if (statusFilter !== "alle") {
-      query = query.eq("status", statusFilter as any);
+      query = query.eq("status", statusFilter as Lead["status"]);
     }
 
     const { data } = await query;
     setLeads(data ?? []);
     setIsLoading(false);
-  }, [statusFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, supabase]);
 
   useEffect(() => {
     fetchLeads();
@@ -104,7 +105,7 @@ export default function BeraterLeadsPage() {
     try {
       const { error } = await supabase
         .from("leads")
-        .update({ status: newStatus as any })
+        .update({ status: newStatus as Lead["status"] })
         .eq("id", leadId);
 
       if (error) throw error;

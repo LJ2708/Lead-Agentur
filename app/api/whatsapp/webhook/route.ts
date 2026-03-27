@@ -135,6 +135,7 @@ async function processStatusUpdate(
 async function processIncomingMessage(
   supabase: ReturnType<typeof createAdminClient>,
   message: WhatsAppMessage,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _displayPhoneNumber?: string
 ) {
   const senderPhone = message.from
@@ -147,7 +148,8 @@ async function processIncomingMessage(
   ]
 
   let leadId: string | null = null
-  let beraterId: string | null = null
+
+
 
   for (const phone of possibleFormats) {
     const { data: lead } = await supabase
@@ -160,7 +162,6 @@ async function processIncomingMessage(
 
     if (lead) {
       leadId = lead.id
-      beraterId = lead.berater_id
       break
     }
   }

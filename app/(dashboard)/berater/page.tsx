@@ -7,7 +7,8 @@ import { KontingentIndicator } from "@/components/dashboard/KontingentIndicator"
 import { PacingChart } from "@/components/dashboard/PacingChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
+
 import {
   BarChart3,
   Users,
@@ -35,7 +36,7 @@ export default async function BeraterDashboardPage() {
     .eq("id", user.id)
     .single();
 
-  if (!profile || (profile as any).role !== "berater") {
+  if (!profile || profile.role !== "berater") {
     redirect("/login");
   }
 
@@ -102,7 +103,7 @@ export default async function BeraterDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Willkommen, {(profile as any).full_name?.split(" ")[0] ?? "Berater"}
+            Willkommen, {profile.full_name?.split(" ")[0] ?? "Berater"}
           </h1>
           <p className="text-muted-foreground">
             Ihr Lead-Dashboard im Überblick

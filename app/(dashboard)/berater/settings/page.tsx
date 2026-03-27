@@ -17,17 +17,19 @@ import {
 import { BeraterForm } from "@/components/forms/BeraterForm";
 import {
   User,
-  CreditCard,
+
+
   Pause,
   Play,
   AlertTriangle,
   Loader2,
   CheckCircle2,
-  XCircle,
+
+
   Package,
   Users,
 } from "lucide-react";
-import { formatEuro, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 
 type Profile = Tables<"profiles">;
@@ -73,7 +75,8 @@ export default function BeraterSettingsPage() {
     }
 
     setIsLoading(false);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]);
 
   useEffect(() => {
     fetchData();
@@ -165,9 +168,9 @@ export default function BeraterSettingsPage() {
 
           <BeraterForm
             initialData={{
-              vorname: ((profile as any).full_name ?? "").split(" ")[0] ?? "",
-              nachname: ((profile as any).full_name ?? "").split(" ").slice(1).join(" "),
-              telefon: (profile as any).phone ?? "",
+              vorname: (profile.full_name ?? "").split(" ")[0] ?? "",
+              nachname: (profile.full_name ?? "").split(" ").slice(1).join(" "),
+              telefon: profile.phone ?? "",
             }}
             onSubmit={handleProfileSave}
             isLoading={isSaving}

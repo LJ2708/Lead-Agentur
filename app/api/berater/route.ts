@@ -8,7 +8,8 @@ import type { Database } from '@/types/database'
 // PATCH - Update berater (admin: any, berater: pause/unpause own)
 // ---------------------------------------------------------------------------
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   const supabase = await createClient()
 
   const {

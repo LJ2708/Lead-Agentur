@@ -89,7 +89,7 @@ export function LeadActivityTimeline({ activities }: LeadActivityTimelineProps) 
       {/* Vertical timeline line */}
       <div className="absolute left-[17px] top-2 bottom-2 w-px bg-border" />
 
-      {activities.map((activity, index) => {
+      {activities.map((activity) => {
         const Icon = ACTIVITY_ICONS[activity.type] ?? Settings;
         const iconColor =
           ACTIVITY_COLORS[activity.type] ?? "bg-gray-100 text-gray-600";

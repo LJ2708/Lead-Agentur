@@ -349,9 +349,8 @@ export default function AdminReportsPage() {
                       paddingAngle={2}
                       dataKey="value"
                       nameKey="name"
-                      label={(({ name, percent }: { name?: string; percent?: number }) =>
-                        `${name ?? ""} (${((percent ?? 0) * 100).toFixed(0)}%)`) as any
-                      }
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      label={(({ name, percent }: { name?: string; percent?: number }) => `${name ?? ""} (${((percent ?? 0) * 100).toFixed(0)}%)`) as any}
                       labelLine
                     >
                       {statusDistribution.map((entry, index) => (
@@ -408,10 +407,8 @@ export default function AdminReportsPage() {
                         border: "1px solid #e5e7eb",
                         fontSize: "13px",
                       }}
-                      formatter={((value: number) => [
-                        `${value} Min.`,
-                        "Reaktionszeit",
-                      ]) as any}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      formatter={((value: number) => [`${value} Min.`, "Reaktionszeit"]) as any}
                     />
                     <Line
                       type="monotone"

@@ -211,6 +211,7 @@ export default function AdminNachkaufPage() {
 
   useEffect(() => {
     fetchPakete()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function openCreate() {

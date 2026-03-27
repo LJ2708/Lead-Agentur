@@ -62,11 +62,13 @@ export default function SetterWorkListPage() {
       .order("created_at", { ascending: false });
 
     if (statusFilter !== "alle") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       query = query.eq("status", statusFilter as any);
     }
 
     const { data } = await query;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const enrichedLeads: Lead[] = (data ?? []).map((l: any) => ({
       ...l,
       berater_name: l.berater?.profiles
@@ -77,7 +79,8 @@ export default function SetterWorkListPage() {
 
     setLeads(enrichedLeads);
     setIsLoading(false);
-  }, [statusFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, supabase]);
 
   useEffect(() => {
     fetchLeads();

@@ -4,14 +4,9 @@ import {
   Phone,
   Mail,
   MessageCircle,
-  ExternalLink,
-  User,
-  Building2,
-  MapPin,
-  Globe,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { LeadActivityTimeline } from "@/components/dashboard/LeadActivityTimeline";
@@ -27,14 +22,17 @@ interface LeadDetailProps {
   lead: Lead;
   activities: Activity[];
   onStatusChange?: (newStatus: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onAddNote?: (note: string) => void;
 }
 
 export function LeadDetail({
   lead,
   activities,
-  onStatusChange,
-  onAddNote,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onStatusChange: _onStatusChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onAddNote: _onAddNote,
 }: LeadDetailProps) {
   const fullName = `${lead.vorname} ${lead.nachname}`;
 

@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
-  Users,
   UserCheck,
   Package,
   ShoppingCart,

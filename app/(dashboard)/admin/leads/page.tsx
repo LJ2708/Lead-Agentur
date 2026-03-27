@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createBrowserClient } from "@supabase/ssr"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { LeadTable } from "@/components/dashboard/LeadTable"
@@ -80,7 +80,7 @@ export default function AdminLeadsPage() {
     }
 
     if (statusFilter !== "alle") {
-      query = query.eq("status", statusFilter as any)
+      query = query.eq("status", statusFilter as Database["public"]["Enums"]["lead_status"])
     }
 
     if (dateFrom) {
@@ -127,7 +127,7 @@ export default function AdminLeadsPage() {
     try {
       const { error } = await supabase
         .from("leads")
-        .update({ status: newStatus as any })
+        .update({ status: newStatus as Database["public"]["Enums"]["lead_status"] })
         .eq("id", leadId)
 
       if (error) throw error

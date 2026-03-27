@@ -63,6 +63,7 @@ export function PacingChart({ kontingent, geliefert }: PacingChartProps) {
             allowDecimals={false}
           />
           <Tooltip
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={((value: number) => [`${value} Leads`, ""]) as any}
             labelStyle={{ fontWeight: 600 }}
             contentStyle={{

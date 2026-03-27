@@ -19,7 +19,8 @@ export default function BeraterNachkaufPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [beraterId, setBeraterId] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedPaketId, setSelectedPaketId] = useState<string | null>(null);
+
+
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -49,7 +50,8 @@ export default function BeraterNachkaufPage() {
 
     setPakete(paketeData ?? []);
     setIsLoading(false);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]);
 
   useEffect(() => {
     fetchData();

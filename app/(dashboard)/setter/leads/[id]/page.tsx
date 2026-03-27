@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LeadDetail } from "@/components/dashboard/LeadDetail";
+
+
 import { LeadStatusForm } from "@/components/forms/LeadStatusForm";
 import { LeadActivityTimeline } from "@/components/dashboard/LeadActivityTimeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import {
   Send,
   User,
 } from "lucide-react";
-import { formatDate, getStatusLabel, getStatusColor, cn } from "@/lib/utils";
+import { getStatusLabel, getStatusColor, cn } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 
 type Lead = Tables<"leads">;
@@ -82,7 +83,9 @@ export default function SetterLeadDetailPage() {
         .eq("id", leadData.berater_id)
         .single();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (berater && (berater as any).profiles) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const p = (berater as any).profiles;
         setBeraterInfo({
           full_name: p.full_name,
@@ -100,6 +103,7 @@ export default function SetterLeadDetailPage() {
       .order("created_at", { ascending: false });
 
     const enrichedActivities: Activity[] = (activitiesData ?? []).map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (a: any) => ({
         ...a,
         created_by_name: a.profiles?.full_name ?? null,
@@ -109,7 +113,8 @@ export default function SetterLeadDetailPage() {
     setActivities(enrichedActivities);
 
     setIsLoading(false);
-  }, [leadId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadId, router, supabase]);
 
   useEffect(() => {
     fetchData();
@@ -121,7 +126,7 @@ export default function SetterLeadDetailPage() {
     await supabase
       .from("leads")
       .update({
-        status: newStatus as any,
+        status: newStatus as Lead["status"],
         updated_at: new Date().toISOString(),
       })
       .eq("id", lead.id);

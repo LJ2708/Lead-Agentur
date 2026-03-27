@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+
+
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
@@ -94,6 +95,7 @@ export default function BeraterLeadDetailPage() {
       .order("created_at", { ascending: false });
 
     const enrichedActivities: Activity[] = (activitiesData ?? []).map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (a: any) => ({
         ...a,
         created_by_name: a.profiles?.full_name ?? null,
@@ -104,12 +106,13 @@ export default function BeraterLeadDetailPage() {
 
     // Count kontaktversuche
     const kontaktversuche = (activitiesData ?? []).filter(
-      (a: any) => a.type === "anruf"
+      (a: { type: string }) => a.type === "anruf"
     ).length;
     setKontaktversucheCount(kontaktversuche);
 
     setIsLoading(false);
-  }, [leadId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadId, router, supabase]);
 
   useEffect(() => {
     fetchData();
@@ -122,7 +125,7 @@ export default function BeraterLeadDetailPage() {
     await supabase
       .from("leads")
       .update({
-        status: newStatus as any,
+        status: newStatus as Lead["status"],
         updated_at: new Date().toISOString(),
       })
       .eq("id", lead.id);
@@ -187,7 +190,7 @@ export default function BeraterLeadDetailPage() {
     if (["qualifiziert", "nachfassen"].includes(lead.status)) {
       await supabase
         .from("leads")
-        .update({ status: "termin" as any })
+        .update({ status: "termin" as Lead["status"] })
         .eq("id", lead.id);
     }
 

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingCart, Loader2, Check } from "lucide-react";
+import { ShoppingCart, Loader2 } from "lucide-react";
 import { formatEuro, cn } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 

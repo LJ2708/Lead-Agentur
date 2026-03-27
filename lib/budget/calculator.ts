@@ -70,7 +70,8 @@ export async function calculateBudget(options: BudgetOptions = {}): Promise<Budg
   }
 
   // Fetch active lead_pakete for pricing reference
-  const { data: pakete, error: paketError } = await supabaseAdmin
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: _pakete, error: paketError } = await supabaseAdmin
     .from('lead_pakete')
     .select('id, leads_pro_monat, preis_pro_lead_cents, gesamtpreis_cents')
     .eq('is_active', true)
