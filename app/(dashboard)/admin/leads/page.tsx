@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { LeadTable } from "@/components/dashboard/LeadTable"
+import { LeadPipeline } from "@/components/dashboard/LeadPipeline"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -15,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { toast } from "sonner"
 import type { Database } from "@/types/database"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -117,6 +120,23 @@ export default function AdminLeadsPage() {
     setDateFrom("")
     setDateTo("")
     setPage(0)
+  }
+
+  async function handleStatusChange(leadId: string, newStatus: string) {
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ status: newStatus as any })
+        .eq("id", leadId)
+
+      if (error) throw error
+
+      toast.success("Status aktualisiert")
+      fetchLeads()
+    } catch (err) {
+      console.error("Error updating lead status:", err)
+      toast.error("Fehler beim Aktualisieren des Status")
+    }
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -225,49 +245,75 @@ export default function AdminLeadsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="pt-0">
+      {/* View Tabs */}
+      <Tabs defaultValue="tabelle">
+        <TabsList>
+          <TabsTrigger value="tabelle">Tabelle</TabsTrigger>
+          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tabelle">
+          {/* Table */}
+          <Card>
+            <CardContent className="pt-0">
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <LeadTable leads={leads} showBerater />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
+                Seite {page + 1} von {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Zurück
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                >
+                  Weiter
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pipeline">
           {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+            <div className="flex gap-3 overflow-hidden">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-[400px] w-[260px] shrink-0 rounded-lg" />
               ))}
             </div>
           ) : (
-            <LeadTable leads={leads} showBerater />
+            <LeadPipeline
+              leads={leads}
+              onStatusChange={handleStatusChange}
+              isAdmin
+            />
           )}
-        </CardContent>
-      </Card>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Seite {page + 1} von {totalPages}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Zurück
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1}
-            >
-              Weiter
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

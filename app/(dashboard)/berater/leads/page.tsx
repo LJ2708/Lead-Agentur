@@ -20,9 +20,12 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LeadPipeline } from "@/components/dashboard/LeadPipeline";
 import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import type { Tables } from "@/types/database";
 
 type Lead = Tables<"leads">;
@@ -97,6 +100,23 @@ export default function BeraterLeadsPage() {
     );
   });
 
+  async function handleStatusChange(leadId: string, newStatus: string) {
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ status: newStatus as any })
+        .eq("id", leadId);
+
+      if (error) throw error;
+
+      toast.success("Status aktualisiert");
+      fetchLeads();
+    } catch (err) {
+      console.error("Error updating lead status:", err);
+      toast.error("Fehler beim Aktualisieren des Status");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -141,62 +161,86 @@ export default function BeraterLeadsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : filteredLeads.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              Keine Leads gefunden.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead>E-Mail</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Zugewiesen am</TableHead>
-                  <TableHead>Letzter Kontakt</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLeads.map((lead) => (
-                  <TableRow
-                    key={lead.id}
-                    className="cursor-pointer"
-                    onClick={() => router.push(`/berater/leads/${lead.id}`)}
-                  >
-                    <TableCell className="font-medium">
-                      {lead.vorname} {lead.nachname}
-                    </TableCell>
-                    <TableCell>{lead.telefon ?? "-"}</TableCell>
-                    <TableCell>{lead.email}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(lead.status)}`}
+          <Tabs defaultValue="tabelle">
+            <TabsList className="mb-4">
+              <TabsTrigger value="tabelle">Tabelle</TabsTrigger>
+              <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="tabelle">
+              {isLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : filteredLeads.length === 0 ? (
+                <p className="py-12 text-center text-sm text-muted-foreground">
+                  Keine Leads gefunden.
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Telefon</TableHead>
+                      <TableHead>E-Mail</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Zugewiesen am</TableHead>
+                      <TableHead>Letzter Kontakt</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLeads.map((lead) => (
+                      <TableRow
+                        key={lead.id}
+                        className="cursor-pointer"
+                        onClick={() => router.push(`/berater/leads/${lead.id}`)}
                       >
-                        {getStatusLabel(lead.status)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {lead.zugewiesen_am
-                        ? formatDate(lead.zugewiesen_am)
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {lead.erster_kontakt_am
-                        ? formatDate(lead.erster_kontakt_am)
-                        : "-"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                        <TableCell className="font-medium">
+                          {lead.vorname} {lead.nachname}
+                        </TableCell>
+                        <TableCell>{lead.telefon ?? "-"}</TableCell>
+                        <TableCell>{lead.email}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(lead.status)}`}
+                          >
+                            {getStatusLabel(lead.status)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {lead.zugewiesen_am
+                            ? formatDate(lead.zugewiesen_am)
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {lead.erster_kontakt_am
+                            ? formatDate(lead.erster_kontakt_am)
+                            : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+
+            <TabsContent value="pipeline">
+              {isLoading ? (
+                <div className="flex gap-3 overflow-hidden">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-[400px] w-[260px] shrink-0 rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <LeadPipeline
+                  leads={filteredLeads}
+                  onStatusChange={handleStatusChange}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
