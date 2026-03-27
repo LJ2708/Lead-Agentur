@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge"
+import { SmartInsights } from "@/components/dashboard/SmartInsights"
+import { RealtimeLeadFeed } from "@/components/dashboard/RealtimeLeadFeed"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -109,8 +111,11 @@ export default async function AdminOverviewPage() {
         />
       </div>
 
+      {/* KI-Einblicke */}
+      <SmartInsights />
+
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Leads */}
+        {/* Recent Leads + Live Feed */}
         <Card>
           <CardHeader>
             <CardTitle>Letzte Leads</CardTitle>
@@ -156,8 +161,10 @@ export default async function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        {/* Active Berater Summary */}
-        <Card>
+        {/* Live Feed + Active Berater Summary */}
+        <div className="space-y-6">
+          <RealtimeLeadFeed />
+          <Card>
           <CardHeader>
             <CardTitle>Aktive Berater</CardTitle>
           </CardHeader>
@@ -225,6 +232,7 @@ export default async function AdminOverviewPage() {
             </Table>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   )

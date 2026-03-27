@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -73,8 +74,27 @@ interface SidebarProps {
 
 export function Sidebar({ role }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [neuLeadsCount, setNeuLeadsCount] = useState(0);
   const pathname = usePathname();
   const navItems = navItemsByRole[role] ?? [];
+
+  const showBadges = role === "admin" || role === "teamleiter";
+
+  const fetchNeuLeads = useCallback(async () => {
+    if (!showBadges) return;
+    const supabase = createClient();
+    const { count } = await supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "neu");
+    setNeuLeadsCount(count ?? 0);
+  }, [showBadges]);
+
+  useEffect(() => {
+    fetchNeuLeads();
+    const interval = setInterval(fetchNeuLeads, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchNeuLeads]);
 
   function isActive(href: string): boolean {
     if (href === "/admin" || href === "/berater" || href === "/setter") {
@@ -119,6 +139,9 @@ export function Sidebar({ role }: SidebarProps) {
               const active = isActive(item.href);
               const Icon = item.icon;
 
+              const badgeCount =
+                showBadges && item.label === "Leads" ? neuLeadsCount : 0;
+
               if (collapsed) {
                 return (
                   <li key={item.href}>
@@ -127,13 +150,18 @@ export function Sidebar({ role }: SidebarProps) {
                         <Link
                           href={item.href}
                           className={cn(
-                            "flex h-10 w-full items-center justify-center rounded-lg transition-colors",
+                            "relative flex h-10 w-full items-center justify-center rounded-lg transition-colors",
                             active
                               ? "bg-blue-50 text-blue-600"
                               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                           )}
                         >
                           <Icon className="h-5 w-5" />
+                          {badgeCount > 0 && (
+                            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                              {badgeCount > 99 ? "99+" : badgeCount}
+                            </span>
+                          )}
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right">
@@ -156,7 +184,12 @@ export function Sidebar({ role }: SidebarProps) {
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {badgeCount > 0 && (
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold leading-none text-white">
+                        {badgeCount > 99 ? "99+" : badgeCount}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

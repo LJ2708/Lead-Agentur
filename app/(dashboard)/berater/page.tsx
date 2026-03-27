@@ -5,18 +5,16 @@ import { berechnePacingInfo } from "@/lib/routing/pacing";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { KontingentIndicator } from "@/components/dashboard/KontingentIndicator";
 import { PacingChart } from "@/components/dashboard/PacingChart";
+import { SmartInbox } from "@/components/dashboard/SmartInbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 
 import {
   BarChart3,
   Users,
   CalendarDays,
   ShoppingCart,
-  ArrowRight,
 } from "lucide-react";
-import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils";
 
 export default async function BeraterDashboardPage() {
   const supabase = await createClient();
@@ -95,9 +93,6 @@ export default async function BeraterDashboardPage() {
   const geliefert = berater.leads_geliefert;
   const pacing = berechnePacingInfo(kontingent, geliefert);
 
-  // Recent leads (last 5)
-  const recentLeads = leads.slice(0, 5);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -106,7 +101,7 @@ export default async function BeraterDashboardPage() {
             Willkommen, {profile.full_name?.split(" ")[0] ?? "Berater"}
           </h1>
           <p className="text-muted-foreground">
-            Ihr Lead-Dashboard im Überblick
+            Ihr Lead-Dashboard im \u00dcberblick
           </p>
         </div>
         <Button asChild>
@@ -122,7 +117,7 @@ export default async function BeraterDashboardPage() {
         <StatsCard
           title="Kontingent"
           value={`${geliefert} / ${kontingent}`}
-          description={`${pacing.prozent}% ausgeschöpft`}
+          description={`${pacing.prozent}% ausgesch\u00f6pft`}
           icon={BarChart3}
         />
         <StatsCard
@@ -134,7 +129,7 @@ export default async function BeraterDashboardPage() {
         <StatsCard
           title="Termine diese Woche"
           value={termineCount}
-          description="Geplante Gespräche"
+          description="Geplante Gespr\u00e4che"
           icon={CalendarDays}
         />
         <StatsCard
@@ -171,53 +166,8 @@ export default async function BeraterDashboardPage() {
         </Card>
       </div>
 
-      {/* Recent Leads */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Letzte Leads</CardTitle>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/berater/leads">
-                Alle anzeigen
-                <ArrowRight className="h-3.5 w-3.5" data-icon="inline-end" />
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {recentLeads.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Noch keine Leads vorhanden.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {recentLeads.map((lead) => (
-                <Link
-                  key={lead.id}
-                  href={`/berater/leads/${lead.id}`}
-                  className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {lead.vorname} {lead.nachname}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {lead.email}
-                      {lead.zugewiesen_am &&
-                        ` · Zugewiesen am ${formatDate(lead.zugewiesen_am)}`}
-                    </p>
-                  </div>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(lead.status)}`}
-                  >
-                    {getStatusLabel(lead.status)}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Smart Inbox replaces the old "Letzte Leads" table */}
+      <SmartInbox beraterId={berater.id} />
     </div>
   );
 }
