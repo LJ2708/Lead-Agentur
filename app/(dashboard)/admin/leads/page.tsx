@@ -272,7 +272,7 @@ export default function AdminLeadsPage() {
                   ))}
                 </div>
               ) : (
-                <LeadTable leads={leads} showBerater />
+                <LeadTable leads={leads} showBerater onLeadUpdated={fetchLeads} />
               )}
             </CardContent>
           </Card>

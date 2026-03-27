@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
@@ -9,10 +9,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge"
 import { formatDate } from "@/lib/utils"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, UserPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 
 interface Lead {
   id: string
@@ -28,11 +37,18 @@ interface Lead {
   besitzer?: { full_name: string | null } | null
 }
 
+interface BeraterOption {
+  id: string
+  profile_id: string
+  status: string
+  profiles: { full_name: string } | null
+}
+
 interface LeadTableProps {
   leads: Lead[]
   showBerater?: boolean
   showSetter?: boolean
-  onStatusChange?: (leadId: string, newStatus: string) => void
+  onLeadUpdated?: () => void
 }
 
 type SortKey = "name" | "email" | "status" | "source" | "created_at"
@@ -42,11 +58,53 @@ export function LeadTable({
   leads,
   showBerater = false,
   showSetter = false,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onStatusChange: _onStatusChange,
+  onLeadUpdated,
 }: LeadTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("created_at")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
+  const [beraterList, setBeraterList] = useState<BeraterOption[]>([])
+  const [assigningLeadId, setAssigningLeadId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!showBerater) return
+    const supabase = createClient()
+    supabase
+      .from("berater")
+      .select("id, profile_id, status, profiles:profile_id(full_name)")
+      .eq("status", "aktiv")
+      .then(({ data }) => {
+        if (data) setBeraterList(data as unknown as BeraterOption[])
+      })
+  }, [showBerater])
+
+  async function assignBerater(leadId: string, beraterId: string) {
+    setAssigningLeadId(leadId)
+    const supabase = createClient()
+
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        berater_id: beraterId,
+        status: "zugewiesen" as const,
+        zugewiesen_am: new Date().toISOString(),
+      })
+      .eq("id", leadId)
+
+    if (error) {
+      toast.error("Zuweisung fehlgeschlagen: " + error.message)
+    } else {
+      // Create activity
+      await supabase.from("lead_activities").insert({
+        lead_id: leadId,
+        type: "zuweisung" as const,
+        title: "Lead zugewiesen",
+        description: `Lead wurde manuell einem Berater zugewiesen`,
+      })
+      toast.success("Lead erfolgreich zugewiesen")
+      onLeadUpdated?.()
+    }
+    setAssigningLeadId(null)
+  }
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -61,18 +119,18 @@ export function LeadTable({
     let cmp = 0
     switch (sortKey) {
       case "name":
-        cmp = `${a.nachname ?? ''} ${a.vorname ?? ''}`.localeCompare(
-          `${b.nachname ?? ''} ${b.vorname ?? ''}`
+        cmp = `${a.nachname ?? ""} ${a.vorname ?? ""}`.localeCompare(
+          `${b.nachname ?? ""} ${b.vorname ?? ""}`
         )
         break
       case "email":
-        cmp = (a.email ?? '').localeCompare(b.email ?? '')
+        cmp = (a.email ?? "").localeCompare(b.email ?? "")
         break
       case "status":
         cmp = a.status.localeCompare(b.status)
         break
       case "source":
-        cmp = (a.source ?? '').localeCompare(b.source ?? '')
+        cmp = (a.source ?? "").localeCompare(b.source ?? "")
         break
       case "created_at":
         cmp =
@@ -101,9 +159,7 @@ export function LeadTable({
         type="button"
         className={cn(
           "inline-flex items-center gap-1 hover:text-foreground transition-colors",
-          sortKey === sortKeyName
-            ? "text-foreground"
-            : "text-muted-foreground"
+          sortKey === sortKeyName ? "text-foreground" : "text-muted-foreground"
         )}
         onClick={() => handleSort(sortKeyName)}
       >
@@ -141,7 +197,13 @@ export function LeadTable({
         {sorted.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={showBerater && showSetter ? 8 : showBerater || showSetter ? 7 : 6}
+              colSpan={
+                showBerater && showSetter
+                  ? 8
+                  : showBerater || showSetter
+                    ? 7
+                    : 6
+              }
               className="h-24 text-center text-muted-foreground"
             >
               Keine Leads gefunden.
@@ -160,7 +222,35 @@ export function LeadTable({
               </TableCell>
               {showBerater && (
                 <TableCell>
-                  {lead.berater?.profiles?.full_name ?? "-"}
+                  {lead.berater?.profiles?.full_name ? (
+                    <span className="text-sm">
+                      {lead.berater.profiles.full_name}
+                    </span>
+                  ) : (
+                    <Select
+                      disabled={assigningLeadId === lead.id}
+                      onValueChange={(val) => assignBerater(lead.id, val)}
+                    >
+                      <SelectTrigger className="h-8 w-[160px] text-xs">
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <UserPlus className="h-3 w-3" />
+                          <SelectValue placeholder="Zuweisen..." />
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {beraterList.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {b.profiles?.full_name ?? b.profile_id}
+                          </SelectItem>
+                        ))}
+                        {beraterList.length === 0 && (
+                          <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                            Keine aktiven Berater
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </TableCell>
               )}
               {showSetter && (
