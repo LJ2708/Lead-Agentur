@@ -30,8 +30,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  ListChecks,
   Trophy,
+  Headphones,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -72,7 +72,8 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Einstellungen", href: "/berater/settings", icon: Settings },
   ],
   setter: [
-    { label: "Arbeitsliste", href: "/setter", icon: ListChecks },
+    { label: "Arbeitsliste", href: "/setter", icon: Headphones },
+    { label: "Meine Statistiken", href: "/setter/stats", icon: BarChart3 },
   ],
 };
 
