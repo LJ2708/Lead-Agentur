@@ -11,11 +11,11 @@ export default function AGBPage() {
         href="/"
         className="inline-block text-sm text-gray-400 transition-colors hover:text-white"
       >
-        &larr; Zur\u00fcck zur Startseite
+        &larr; Zurück zur Startseite
       </Link>
 
       <h1 className="text-3xl font-bold text-white">
-        Allgemeine Gesch\u00e4ftsbedingungen
+        Allgemeine Geschäftsbedingungen
       </h1>
 
       <div className="space-y-6 text-gray-300 leading-relaxed">
@@ -24,8 +24,8 @@ export default function AGBPage() {
             1. Geltungsbereich
           </h2>
           <p>
-            Diese Allgemeinen Gesch\u00e4ftsbedingungen gelten f\u00fcr alle
-            Vertragsverh\u00e4ltnisse zwischen der LeadSolution GmbH und ihren Kunden.
+            Diese Allgemeinen Geschäftsbedingungen gelten für alle
+            Vertragsverhältnisse zwischen der LeadSolution GmbH und ihren Kunden.
           </p>
         </section>
 
@@ -35,18 +35,18 @@ export default function AGBPage() {
           </h2>
           <p>
             Gegenstand des Vertrags ist die Bereitstellung von qualifizierten
-            Leads gem\u00e4\u00df dem gew\u00e4hlten Paket des Kunden.
+            Leads gemäß dem gewählten Paket des Kunden.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-xl font-semibold text-white">
-            3. Vertragslaufzeit und K\u00fcndigung
+            3. Vertragslaufzeit und Kündigung
           </h2>
           <p>
-            Die Mindestvertragslaufzeit betr\u00e4gt 3 Monate. Nach Ablauf der
-            Mindestlaufzeit verl\u00e4ngert sich der Vertrag monatlich und kann mit
-            einer Frist von 30 Tagen zum Monatsende gek\u00fcndigt werden.
+            Die Mindestvertragslaufzeit beträgt 3 Monate. Nach Ablauf der
+            Mindestlaufzeit verlängert sich der Vertrag monatlich und kann mit
+            einer Frist von 30 Tagen zum Monatsende gekündigt werden.
           </p>
         </section>
 
@@ -56,7 +56,7 @@ export default function AGBPage() {
           </h2>
           <p>
             Die Abrechnung erfolgt monatlich im Voraus. Die Zahlung wird
-            \u00fcber den Zahlungsdienstleister Stripe abgewickelt.
+            über den Zahlungsdienstleister Stripe abgewickelt.
           </p>
         </section>
 
@@ -66,13 +66,13 @@ export default function AGBPage() {
           </h2>
           <p>
             Die Haftung der LeadSolution GmbH ist auf Vorsatz und grobe
-            Fahrl\u00e4ssigkeit beschr\u00e4nkt, soweit gesetzlich zul\u00e4ssig.
+            Fahrlässigkeit beschränkt, soweit gesetzlich zulässig.
           </p>
         </section>
 
         <p className="text-sm text-gray-500">
-          Diese AGB sind ein Platzhalter und m\u00fcssen vor der Ver\u00f6ffentlichung
-          durch eine rechtlich gepr\u00fcfte Version ersetzt werden.
+          Diese AGB sind ein Platzhalter und müssen vor der Veröffentlichung
+          durch eine rechtlich geprüfte Version ersetzt werden.
         </p>
       </div>
     </article>

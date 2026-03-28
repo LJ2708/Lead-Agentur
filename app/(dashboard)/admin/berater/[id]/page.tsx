@@ -214,6 +214,32 @@ export default async function BeraterDetailPage({ params }: PageProps) {
               </span>
               <span className="text-sm">{berater.leads_gesamt}</span>
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Leads pro Monat
+              </span>
+              <span className="text-sm">{berater.leads_pro_monat}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Preis pro Lead
+              </span>
+              <span className="text-sm">
+                {formatEuro(berater.preis_pro_lead_cents)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Setter-Typ
+              </span>
+              <span className="text-sm">
+                {berater.setter_typ === "pool"
+                  ? "LeadSolution Setter"
+                  : berater.setter_typ === "eigen"
+                    ? "Eigener Setter"
+                    : "Kein Setter"}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
@@ -316,13 +342,13 @@ export default async function BeraterDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Aktivitaets-Timeline
+            Aktivitäts-Timeline
           </CardTitle>
         </CardHeader>
         <CardContent>
           {activities.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Keine Aktivitaeten vorhanden.
+              Keine Aktivitäten vorhanden.
             </p>
           ) : (
             <div className="relative space-y-0">

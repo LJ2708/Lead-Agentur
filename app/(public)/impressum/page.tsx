@@ -11,7 +11,7 @@ export default function ImpressumPage() {
         href="/"
         className="inline-block text-sm text-gray-400 transition-colors hover:text-white"
       >
-        &larr; Zur\u00fcck zur Startseite
+        &larr; Zurück zur Startseite
       </Link>
 
       <h1 className="text-3xl font-bold text-white">Impressum</h1>
@@ -20,7 +20,7 @@ export default function ImpressumPage() {
         <p>
           <strong className="text-white">LeadSolution GmbH</strong>
           <br />
-          Musterstra\u00dfe 1
+          Musterstraße 1
           <br />
           12345 Musterstadt
           <br />
@@ -30,7 +30,7 @@ export default function ImpressumPage() {
         <p>
           <strong className="text-white">Vertreten durch:</strong>
           <br />
-          Max Mustermann, Gesch\u00e4ftsf\u00fchrer
+          Max Mustermann, Geschäftsführer
         </p>
 
         <p>
@@ -56,8 +56,8 @@ export default function ImpressumPage() {
         </p>
 
         <p className="text-sm text-gray-500">
-          Diese Seite enth\u00e4lt Platzhalterangaben und muss vor der
-          Ver\u00f6ffentlichung mit den tats\u00e4chlichen Unternehmensdaten aktualisiert
+          Diese Seite enthält Platzhalterangaben und muss vor der
+          Veröffentlichung mit den tatsächlichen Unternehmensdaten aktualisiert
           werden.
         </p>
       </div>

@@ -224,7 +224,7 @@ async function handleInvoicePaid(
     betrag_cents: invoice.amount_paid ?? 0,
     typ: 'subscription_renewal',
     leads_gutgeschrieben: kontingent,
-    paket_name: 'Abo-Verl\u00e4ngerung',
+    paket_name: 'Abo-Verlängerung',
   })
 }
 

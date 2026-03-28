@@ -256,11 +256,11 @@ export default function OnboardingPage() {
         <div>
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-gray-900">
-              Lead-Anzahl w\u00e4hlen
+              Lead-Anzahl wählen
             </h2>
             <p className="mt-2 text-muted-foreground">
-              W\u00e4hlen Sie, wie viele Leads Sie pro Monat erhalten m\u00f6chten.
-              Je mehr Leads, desto g\u00fcnstiger der Preis pro Lead.
+              Wählen Sie, wie viele Leads Sie pro Monat erhalten möchten.
+              Je mehr Leads, desto günstiger der Preis pro Lead.
             </p>
           </div>
 
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
                   {pricing.ersparnis > 0 && (
                     <div className="mt-2 text-sm text-green-600">
                       Sie sparen {formatPreis(pricing.ersparnis)} / Monat
-                      gegen\u00fcber dem Einzelpreis
+                      gegenüber dem Einzelpreis
                     </div>
                   )}
                 </div>
@@ -397,7 +397,7 @@ export default function OnboardingPage() {
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-gray-900">Setter-Addon</h2>
             <p className="mt-2 text-muted-foreground">
-              M\u00f6chten Sie Ihre Leads telefonisch vorqualifizieren lassen?
+              Möchten Sie Ihre Leads telefonisch vorqualifizieren lassen?
             </p>
           </div>
 
@@ -414,7 +414,7 @@ export default function OnboardingPage() {
                   </h3>
                   <p className="mt-1 text-sm text-gray-600">
                     Ein Setter kontaktiert Ihre Leads telefonisch und
-                    qualifiziert sie vor, bevor sie an Sie \u00fcbergeben werden. So
+                    qualifiziert sie vor, bevor sie an Sie übergeben werden. So
                     erhalten Sie nur Leads, die wirklich interessiert und bereit
                     sind.
                   </p>
@@ -548,7 +548,7 @@ export default function OnboardingPage() {
                       Eigener Setter
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Nutzen Sie Ihren eigenen Setter f\u00fcr die
+                      Nutzen Sie Ihren eigenen Setter für die
                       Vorqualifikation.
                     </p>
                   </div>
@@ -575,7 +575,7 @@ export default function OnboardingPage() {
             <div className="flex justify-between pt-4">
               <Button variant="outline" size="lg" onClick={() => setStep(1)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Zur\u00fcck
+                Zurück
               </Button>
               <Button
                 size="lg"
@@ -600,8 +600,8 @@ export default function OnboardingPage() {
               Arbeitszeiten festlegen
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Legen Sie fest, wann Sie f\u00fcr neue Leads erreichbar sind.
-              Au\u00dferhalb dieser Zeiten werden keine Leads zugewiesen.
+              Legen Sie fest, wann Sie für neue Leads erreichbar sind.
+              Außerhalb dieser Zeiten werden keine Leads zugewiesen.
             </p>
           </div>
 
@@ -615,7 +615,7 @@ export default function OnboardingPage() {
               <div className="text-center text-sm text-muted-foreground">
                 <p>
                   Arbeitszeiten werden nach der Paketaktivierung gespeichert.
-                  Sie k\u00f6nnen die Standardzeiten (Mo-Fr 09:00-18:00) sp\u00e4ter
+                  Sie können die Standardzeiten (Mo-Fr 09:00-18:00) später
                   anpassen.
                 </p>
                 <Button
@@ -632,7 +632,7 @@ export default function OnboardingPage() {
             <div className="flex justify-between pt-4">
               <Button variant="outline" size="lg" onClick={() => setStep(2)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Zur\u00fcck
+                Zurück
               </Button>
               <Button
                 size="lg"
@@ -658,7 +658,7 @@ export default function OnboardingPage() {
               Zusammenfassung
             </h2>
             <p className="mt-2 text-muted-foreground">
-              \u00dcberpr\u00fcfen Sie Ihre Auswahl, bevor Sie fortfahren.
+              Überprüfen Sie Ihre Auswahl, bevor Sie fortfahren.
             </p>
           </div>
 
@@ -693,7 +693,7 @@ export default function OnboardingPage() {
                     <p className="font-semibold text-gray-900">Setter-Addon</p>
                     <p className="text-sm text-muted-foreground">
                       {setterTyp === "keiner"
-                        ? "Nicht ausgew\u00e4hlt"
+                        ? "Nicht ausgewählt"
                         : setterTyp === "pool"
                         ? "LeadSolution Setter"
                         : "Eigener Setter"}
@@ -714,7 +714,7 @@ export default function OnboardingPage() {
                         Ihre Ersparnis
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        gegen\u00fcber dem Einzelpreis von{" "}
+                        gegenüber dem Einzelpreis von{" "}
                         {formatPreis(5900)} pro Lead
                       </p>
                     </div>
@@ -853,7 +853,7 @@ export default function OnboardingPage() {
             <div className="flex justify-start pt-2">
               <Button variant="ghost" onClick={() => setStep(3)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Zur\u00fcck
+                Zurück
               </Button>
             </div>
           </div>
@@ -872,7 +872,7 @@ export default function OnboardingPage() {
             Willkommen bei LeadSolution!
           </h2>
           <p className="mt-3 max-w-md text-muted-foreground">
-            Ihr Paket wurde erfolgreich aktiviert. Sie k\u00f6nnen jetzt Ihr
+            Ihr Paket wurde erfolgreich aktiviert. Sie können jetzt Ihr
             Dashboard nutzen und Ihre ersten Leads empfangen.
           </p>
 

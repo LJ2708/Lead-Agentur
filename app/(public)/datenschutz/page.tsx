@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Datenschutzerkl\u00e4rung | LeadSolution",
+  title: "Datenschutzerklärung | LeadSolution",
 }
 
 export default function DatenschutzPage() {
@@ -11,11 +11,11 @@ export default function DatenschutzPage() {
         href="/"
         className="inline-block text-sm text-gray-400 transition-colors hover:text-white"
       >
-        &larr; Zur\u00fcck zur Startseite
+        &larr; Zurück zur Startseite
       </Link>
 
       <h1 className="text-3xl font-bold text-white">
-        Datenschutzerkl\u00e4rung
+        Datenschutzerklärung
       </h1>
 
       <div className="space-y-6 text-gray-300 leading-relaxed">
@@ -24,8 +24,8 @@ export default function DatenschutzPage() {
             1. Verantwortlicher
           </h2>
           <p>
-            Verantwortlich f\u00fcr die Datenverarbeitung auf dieser Website ist die
-            LeadSolution GmbH, Musterstra\u00dfe 1, 12345 Musterstadt.
+            Verantwortlich für die Datenverarbeitung auf dieser Website ist die
+            LeadSolution GmbH, Musterstraße 1, 12345 Musterstadt.
           </p>
         </section>
 
@@ -46,7 +46,7 @@ export default function DatenschutzPage() {
           </h2>
           <p>
             Unsere Website verwendet Cookies, um die Nutzung unserer Dienste zu
-            erm\u00f6glichen und zu verbessern. Sie k\u00f6nnen die Speicherung von Cookies
+            ermöglichen und zu verbessern. Sie können die Speicherung von Cookies
             in Ihren Browsereinstellungen verhindern.
           </p>
         </section>
@@ -56,15 +56,15 @@ export default function DatenschutzPage() {
             4. Ihre Rechte
           </h2>
           <p>
-            Sie haben das Recht auf Auskunft, Berichtigung, L\u00f6schung und
-            Einschr\u00e4nkung der Verarbeitung Ihrer personenbezogenen Daten.
+            Sie haben das Recht auf Auskunft, Berichtigung, Löschung und
+            Einschränkung der Verarbeitung Ihrer personenbezogenen Daten.
             Kontaktieren Sie uns unter info@leadsolution.de.
           </p>
         </section>
 
         <p className="text-sm text-gray-500">
-          Diese Datenschutzerkl\u00e4rung ist ein Platzhalter und muss vor der
-          Ver\u00f6ffentlichung durch eine rechtlich gepr\u00fcfte Version ersetzt werden.
+          Diese Datenschutzerklärung ist ein Platzhalter und muss vor der
+          Veröffentlichung durch eine rechtlich geprüfte Version ersetzt werden.
         </p>
       </div>
     </article>

@@ -180,7 +180,7 @@ function determineNextAction(
       return {
         nextAction: "Jetzt anrufen",
         nextActionType: "call",
-        reasoning: `Neuer Lead seit ${lead.zugewiesen_am ? formatTimeAgo(lead.zugewiesen_am) : "kurzem"} \u2013 schnelle Kontaktaufnahme erh\u00f6ht die Abschlussquote.`,
+        reasoning: `Neuer Lead seit ${lead.zugewiesen_am ? formatTimeAgo(lead.zugewiesen_am) : "kurzem"} \u2013 schnelle Kontaktaufnahme erhöht die Abschlussquote.`,
       };
 
     case "kontaktversuch":
@@ -202,7 +202,7 @@ function determineNextAction(
         nextAction: "In 2 Stunden erneut versuchen",
         nextActionType: "wait",
         reasoning:
-          "Lead war nicht erreichbar \u2013 sp\u00e4ter erneut versuchen f\u00fcr bessere Erreichbarkeit.",
+          "Lead war nicht erreichbar \u2013 später erneut versuchen für bessere Erreichbarkeit.",
       };
 
     case "qualifiziert":
@@ -215,10 +215,10 @@ function determineNextAction(
 
     case "termin":
       return {
-        nextAction: "Termin best\u00e4tigen",
+        nextAction: "Termin bestätigen",
         nextActionType: "email",
         reasoning:
-          "Termin steht \u2013 Best\u00e4tigung senden erh\u00f6ht die Show-Rate.",
+          "Termin steht \u2013 Bestätigung senden erhöht die Show-Rate.",
       };
 
     case "show":
@@ -226,7 +226,7 @@ function determineNextAction(
         nextAction: "Angebot nachfassen",
         nextActionType: "call",
         reasoning:
-          "Gespr\u00e4ch hat stattgefunden \u2013 zeitnah nachfassen f\u00fcr Abschluss.",
+          "Gespräch hat stattgefunden \u2013 zeitnah nachfassen für Abschluss.",
       };
 
     case "no_show":
@@ -242,7 +242,7 @@ function determineNextAction(
         nextAction: "Follow-up senden",
         nextActionType: "email",
         reasoning:
-          "Follow-up f\u00e4llig \u2013 per E-Mail nachhaken und Interesse pr\u00fcfen.",
+          "Follow-up fällig \u2013 per E-Mail nachhaken und Interesse prüfen.",
       };
 
     case "abschluss":
@@ -268,9 +268,9 @@ function determineNextAction(
 
     default:
       return {
-        nextAction: "Status pr\u00fcfen",
+        nextAction: "Status prüfen",
         nextActionType: "status_change",
-        reasoning: "Lead-Status \u00fcberpr\u00fcfen und n\u00e4chste Schritte festlegen.",
+        reasoning: "Lead-Status überprüfen und nächste Schritte festlegen.",
       };
   }
 }

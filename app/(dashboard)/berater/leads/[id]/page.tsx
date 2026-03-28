@@ -228,7 +228,7 @@ export default function BeraterLeadDetailPage() {
             {lead.vorname} {lead.nachname}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Lead-Details und Aktivitaeten
+            Lead-Details und Aktivitäten
           </p>
         </div>
       </div>
@@ -320,7 +320,7 @@ export default function BeraterLeadDetailPage() {
           {/* Add Note */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Notiz hinzufuegen</CardTitle>
+              <CardTitle className="text-base">Notiz hinzufügen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea

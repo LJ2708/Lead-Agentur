@@ -29,7 +29,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, TemplateFactory> =
 
     sla_warning: (data: { name: string; minutes: number; lead_id?: string }) => ({
       type: "sla_warning",
-      title: "SLA l\u00e4uft ab!",
+      title: "SLA läuft ab!",
       body: `${data.name} \u2013 noch ${data.minutes} Minuten`,
       data: data.lead_id ? { lead_id: data.lead_id } : undefined,
       urgency: "high",
@@ -37,7 +37,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, TemplateFactory> =
 
     sla_breach: (data: { name: string; lead_id?: string }) => ({
       type: "sla_breach",
-      title: "SLA \u00fcberschritten",
+      title: "SLA überschritten",
       body: `Lead ${data.name} wird umverteilt`,
       data: data.lead_id ? { lead_id: data.lead_id } : undefined,
       urgency: "high",

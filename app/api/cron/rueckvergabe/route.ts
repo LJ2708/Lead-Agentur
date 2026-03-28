@@ -114,7 +114,7 @@ async function handleCron(request: NextRequest) {
       await supabase.from('lead_activities').insert({
         lead_id: slaLead.id,
         type: 'system',
-        title: 'SLA \u00fcberschritten - Lead umverteilt',
+        title: 'SLA überschritten - Lead umverteilt',
         description: `SLA-Frist abgelaufen. Lead wird an neuen Berater umverteilt (vorheriger Berater: ${previousBeraterId})`,
       })
 

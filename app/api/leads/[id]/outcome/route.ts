@@ -22,8 +22,8 @@ interface OutcomeBody {
 const OUTCOME_LABELS: Record<ContactOutcome, string> = {
   reached: "Erreicht",
   not_reached: "Nicht erreicht",
-  invalid: "Ung\u00fcltige Nummer",
-  callback: "R\u00fcckruf vereinbart",
+  invalid: "Ungültige Nummer",
+  callback: "Rückruf vereinbart",
   not_interested: "Kein Interesse",
   appointment: "Termin vereinbart",
 }
@@ -59,7 +59,7 @@ export async function POST(
 
   if (!validOutcomes.includes(outcome)) {
     return NextResponse.json(
-      { error: "Ung\u00fcltiges Ergebnis" },
+      { error: "Ungültiges Ergebnis" },
       { status: 400 }
     )
   }
@@ -143,7 +143,7 @@ export async function POST(
   const description = [
     `Kontaktergebnis: ${OUTCOME_LABELS[outcome]}`,
     note ? `Notiz: ${note}` : null,
-    callback_at ? `R\u00fcckruf: ${new Date(callback_at).toLocaleString("de-DE")}` : null,
+    callback_at ? `Rückruf: ${new Date(callback_at).toLocaleString("de-DE")}` : null,
     termin_at ? `Termin: ${new Date(termin_at).toLocaleString("de-DE")}` : null,
   ]
     .filter(Boolean)
@@ -178,7 +178,7 @@ export async function POST(
       type: "notiz" as const,
       title:
         outcome === "invalid"
-          ? "Ung\u00fcltige Nummer"
+          ? "Ungültige Nummer"
           : "Kein Interesse",
       description: note,
       created_by: user.id,

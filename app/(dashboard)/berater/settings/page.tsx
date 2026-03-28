@@ -244,6 +244,31 @@ export default function BeraterSettingsPage() {
 
           <Separator />
 
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-sm text-muted-foreground">Leads pro Monat</p>
+              <p className="mt-1 font-medium">{berater.leads_pro_monat}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Preis pro Lead</p>
+              <p className="mt-1 font-medium">
+                {(berater.preis_pro_lead_cents / 100).toFixed(2)} &euro;
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Setter-Typ</p>
+              <p className="mt-1 font-medium">
+                {berater.setter_typ === "pool"
+                  ? "LeadSolution Setter"
+                  : berater.setter_typ === "eigen"
+                  ? "Eigener Setter"
+                  : "Kein Setter"}
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Pause/Unpause */}
           <div className="flex items-center justify-between">
             <div>
@@ -278,7 +303,7 @@ export default function BeraterSettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Arbeitszeiten & Verfuegbarkeit</CardTitle>
+            <CardTitle>Arbeitszeiten & Verfügbarkeit</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">

@@ -109,7 +109,7 @@ export default function BeraterNachkaufPage() {
         <Card>
           <CardContent className="py-12">
             <p className="text-center text-sm text-muted-foreground">
-              Kein Berater-Profil gefunden. Bitte schlie\u00dfen Sie zuerst das Onboarding ab.
+              Kein Berater-Profil gefunden. Bitte schließen Sie zuerst das Onboarding ab.
             </p>
           </CardContent>
         </Card>
@@ -124,7 +124,7 @@ export default function BeraterNachkaufPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Leads nachkaufen</h1>
         <p className="text-muted-foreground">
-          Erweitern Sie Ihr Kontingent mit zus\u00e4tzlichen Leads zum aktuellen
+          Erweitern Sie Ihr Kontingent mit zusätzlichen Leads zum aktuellen
           Preis von {formatEuro(preisProLead)} pro Lead.
         </p>
       </div>

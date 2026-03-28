@@ -25,6 +25,8 @@ interface BeraterWithProfile {
   leads_geliefert: number
   leads_gesamt: number
   leads_kontingent: number
+  leads_pro_monat: number
+  preis_pro_lead_cents: number
   subscription_status: string | null
   umsatz_gesamt_cents: number
   profiles: {
@@ -65,7 +67,7 @@ export default function AdminBeraterPage() {
       const { data: berater, error } = await supabase
         .from("berater")
         .select(
-          "id, status, leads_geliefert, leads_gesamt, leads_kontingent, subscription_status, umsatz_gesamt_cents, profiles:profile_id(full_name, email)"
+          "id, status, leads_geliefert, leads_gesamt, leads_kontingent, leads_pro_monat, preis_pro_lead_cents, subscription_status, umsatz_gesamt_cents, profiles:profile_id(full_name, email)"
         )
         .order("created_at", { ascending: false })
 
@@ -91,6 +93,8 @@ export default function AdminBeraterPage() {
             leads_geliefert: b.leads_geliefert,
             leads_gesamt: b.leads_gesamt,
             leads_kontingent: b.leads_kontingent,
+            leads_pro_monat: b.leads_pro_monat,
+            preis_pro_lead_cents: b.preis_pro_lead_cents,
             subscription_status: b.subscription_status,
             umsatz_gesamt_cents: b.umsatz_gesamt_cents,
             profiles: profile,
@@ -134,7 +138,8 @@ export default function AdminBeraterPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>E-Mail</TableHead>
-                  <TableHead>Paket</TableHead>
+                  <TableHead>Leads/Monat</TableHead>
+                  <TableHead>Preis/Lead</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Kontingent</TableHead>
                   <TableHead>Leads gesamt</TableHead>
@@ -146,7 +151,7 @@ export default function AdminBeraterPage() {
                 {beraterList.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="h-24 text-center text-muted-foreground"
                     >
                       Keine Berater gefunden.
@@ -171,11 +176,10 @@ export default function AdminBeraterPage() {
                         </TableCell>
                         <TableCell>{profile?.email ?? "-"}</TableCell>
                         <TableCell>
-                          <span className="text-xs text-muted-foreground">
-                            {berater.subscription_status === "active"
-                              ? "Aktives Abo"
-                              : berater.subscription_status ?? "-"}
-                          </span>
+                          {berater.leads_pro_monat}
+                        </TableCell>
+                        <TableCell>
+                          {formatEuro(berater.preis_pro_lead_cents)}
                         </TableCell>
                         <TableCell>
                           <span

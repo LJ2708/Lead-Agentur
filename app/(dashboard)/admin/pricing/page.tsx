@@ -186,7 +186,7 @@ export default function AdminPricingPage() {
         <CardHeader>
           <CardTitle className="text-lg">Preiskurve</CardTitle>
           <CardDescription>
-            Preis pro Lead in Abh\u00e4ngigkeit von der monatlichen Lead-Anzahl
+            Preis pro Lead in Abhängigkeit von der monatlichen Lead-Anzahl
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -280,9 +280,9 @@ export default function AdminPricingPage() {
       {/* Live Preview Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Preis\u00fcbersicht</CardTitle>
+          <CardTitle className="text-lg">Preisübersicht</CardTitle>
           <CardDescription>
-            Berechnete Preise f\u00fcr verschiedene Lead-Mengen (ohne Setter)
+            Berechnete Preise für verschiedene Lead-Mengen (ohne Setter)
           </CardDescription>
         </CardHeader>
         <CardContent>

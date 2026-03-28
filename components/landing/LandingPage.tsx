@@ -129,7 +129,7 @@ function HeroSection() {
                 {[
                   { label: "Neue Leads", value: "24", color: "bg-[#3B82F6]/10 text-[#3B82F6]" },
                   { label: "Termine", value: "12", color: "bg-[#10B981]/10 text-[#10B981]" },
-                  { label: "Abschl\u00fcsse", value: "6", color: "bg-[#8B5CF6]/10 text-[#8B5CF6]" },
+                  { label: "Abschlüsse", value: "6", color: "bg-[#8B5CF6]/10 text-[#8B5CF6]" },
                 ].map((s) => (
                   <div key={s.label} className={`rounded-lg p-3 ${s.color}`}>
                     <div className="text-xs font-medium opacity-80">{s.label}</div>
@@ -219,18 +219,18 @@ function StepsSection() {
       num: "01",
       icon: Settings,
       title: "Paket konfigurieren",
-      description: "W\u00e4hle deine Lead-Anzahl und starte dein Abo in 2 Minuten.",
+      description: "Wähle deine Lead-Anzahl und starte dein Abo in 2 Minuten.",
     },
     {
       num: "02",
       icon: Inbox,
       title: "Leads empfangen",
-      description: "Qualifizierte Leads landen automatisch in deinem Dashboard \u2014 gleichm\u00e4\u00dfig \u00fcber den Monat.",
+      description: "Qualifizierte Leads landen automatisch in deinem Dashboard \u2014 gleichmäßig über den Monat.",
     },
     {
       num: "03",
       icon: TrendingUp,
-      title: "Abschl\u00fcsse erzielen",
+      title: "Abschlüsse erzielen",
       description: "Kontaktiere deine Leads, verfolge deinen Fortschritt und steigere deinen Umsatz.",
     },
   ]
@@ -280,12 +280,12 @@ const features = [
   {
     icon: Zap,
     title: "Pacing-Verteilung",
-    description: "Leads werden gleichm\u00e4\u00dfig \u00fcber den Monat verteilt. Kein Feast-or-Famine.",
+    description: "Leads werden gleichmäßig über den Monat verteilt. Kein Feast-or-Famine.",
   },
   {
     icon: MessageCircle,
     title: "WhatsApp & E-Mail",
-    description: "Automatische Benachrichtigungen an Leads und Berater \u00fcber alle Kan\u00e4le.",
+    description: "Automatische Benachrichtigungen an Leads und Berater über alle Kanäle.",
   },
   {
     icon: Headphones,
@@ -295,17 +295,17 @@ const features = [
   {
     icon: LayoutDashboard,
     title: "Smart Dashboard",
-    description: "KI-gest\u00fctztes Dashboard mit Lead-Scoring, SLA-Timer und Quick Actions.",
+    description: "KI-gestütztes Dashboard mit Lead-Scoring, SLA-Timer und Quick Actions.",
   },
   {
     icon: Shield,
     title: "100% Exklusiv",
-    description: "Jeder Lead geh\u00f6rt nur dir. Keine Mehrfachvergabe, keine Konkurrenz.",
+    description: "Jeder Lead gehört nur dir. Keine Mehrfachvergabe, keine Konkurrenz.",
   },
   {
     icon: Lock,
     title: "DSGVO-konform",
-    description: "Alle Daten in Frankfurt (EU), vollst\u00e4ndig DSGVO-konform.",
+    description: "Alle Daten in Frankfurt (EU), vollständig DSGVO-konform.",
   },
 ]
 
@@ -389,12 +389,12 @@ const faqItems = [
   {
     question: "Was ist LeadSolution?",
     answer:
-      "LeadSolution ist eine Plattform, die dir exklusive, qualifizierte Leads aus Meta-Kampagnen liefert. Wir \u00fcbernehmen die gesamte Lead-Generierung, Verteilung und Nachverfolgung \u2014 du konzentrierst dich auf den Abschluss.",
+      "LeadSolution ist eine Plattform, die dir exklusive, qualifizierte Leads aus Meta-Kampagnen liefert. Wir übernehmen die gesamte Lead-Generierung, Verteilung und Nachverfolgung \u2014 du konzentrierst dich auf den Abschluss.",
   },
   {
     question: "Wie funktioniert die Lead-Verteilung?",
     answer:
-      "Unsere Pacing-Engine verteilt deine Leads gleichm\u00e4\u00dfig \u00fcber den Monat. So vermeidest du \u00dcberlastung am Monatsanfang und Leerlauf am Ende. Du bekommst jeden Tag die optimale Anzahl an Leads.",
+      "Unsere Pacing-Engine verteilt deine Leads gleichmäßig über den Monat. So vermeidest du Überlastung am Monatsanfang und Leerlauf am Ende. Du bekommst jeden Tag die optimale Anzahl an Leads.",
   },
   {
     question: "Was kostet ein Lead?",
@@ -404,22 +404,22 @@ const faqItems = [
   {
     question: "Was ist der Setter-Service?",
     answer:
-      "Ein Setter kontaktiert deine Leads vorab per Telefon und WhatsApp \u2014 maximal 5 Versuche pro Lead. So erh\u00e4ltst du bereits vorqualifizierte Kontakte und sparst wertvolle Zeit.",
+      "Ein Setter kontaktiert deine Leads vorab per Telefon und WhatsApp \u2014 maximal 5 Versuche pro Lead. So erhältst du bereits vorqualifizierte Kontakte und sparst wertvolle Zeit.",
   },
   {
     question: "Wie schnell bekomme ich Leads?",
     answer:
-      "Nach der Aktivierung deines Abos beginnt die Lead-Lieferung innerhalb von 24 Stunden. Die Leads werden dann gleichm\u00e4\u00dfig \u00fcber den restlichen Monat verteilt.",
+      "Nach der Aktivierung deines Abos beginnt die Lead-Lieferung innerhalb von 24 Stunden. Die Leads werden dann gleichmäßig über den restlichen Monat verteilt.",
   },
   {
-    question: "Kann ich mein Abo \u00e4ndern?",
+    question: "Kann ich mein Abo ändern?",
     answer:
-      "Du kannst die Lead-Anzahl jederzeit zum n\u00e4chsten Monat anpassen. Eine K\u00fcndigung ist nach Ablauf der Mindestlaufzeit von 3 Monaten monatlich m\u00f6glich.",
+      "Du kannst die Lead-Anzahl jederzeit zum nächsten Monat anpassen. Eine Kündigung ist nach Ablauf der Mindestlaufzeit von 3 Monaten monatlich möglich.",
   },
   {
     question: "Sind die Leads exklusiv?",
     answer:
-      "Ja, jeder Lead wird ausschlie\u00dflich an dich geliefert. Es gibt keine Mehrfachvergabe und keine Konkurrenz um denselben Kontakt. Dein Lead geh\u00f6rt nur dir.",
+      "Ja, jeder Lead wird ausschließlich an dich geliefert. Es gibt keine Mehrfachvergabe und keine Konkurrenz um denselben Kontakt. Dein Lead gehört nur dir.",
   },
 ]
 

@@ -219,7 +219,7 @@ export async function sendNachkaufEmail(
     ${emailButton('Dashboard &ouml;ffnen', `${APP_URL}/dashboard`)}
   `)
 
-  return sendEmail(to, `Nachkauf best\u00e4tigt: ${data.anzahlLeads} Leads`, html)
+  return sendEmail(to, `Nachkauf bestätigt: ${data.anzahlLeads} Leads`, html)
 }
 
 // ---------------------------------------------------------------------------
