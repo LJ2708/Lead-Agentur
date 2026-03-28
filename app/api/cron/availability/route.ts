@@ -14,10 +14,8 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(request: Request) {
   // Verify CRON_SECRET
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  const { verifyCronAuth } = await import('@/lib/cron/auth')
+  if (!verifyCronAuth(request as import('next/server').NextRequest)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

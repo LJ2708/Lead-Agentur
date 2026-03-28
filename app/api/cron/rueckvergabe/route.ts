@@ -12,9 +12,17 @@ import { sendReminderEmail, sendAdminAlertEmail } from '@/lib/email/client'
 //   > 5 h since zugewiesen_am, no contact    -> send admin alert
 // ---------------------------------------------------------------------------
 
+export async function GET(request: NextRequest) {
+  return handleCron(request)
+}
+
 export async function POST(request: NextRequest) {
-  const cronSecret = request.headers.get('x-cron-secret')
-  if (!process.env.CRON_SECRET || cronSecret !== process.env.CRON_SECRET) {
+  return handleCron(request)
+}
+
+async function handleCron(request: NextRequest) {
+  const { verifyCronAuth } = await import('@/lib/cron/auth')
+  if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
