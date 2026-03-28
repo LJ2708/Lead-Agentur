@@ -15,6 +15,7 @@ import {
 import { ChevronDown, LogOut, Menu, User as UserIcon } from "lucide-react";
 import { AvailabilityToggle } from "@/components/dashboard/AvailabilityToggle";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { useSidebarContext } from "@/components/dashboard/MobileLayout";
 
 interface TopbarUser {
@@ -46,7 +47,7 @@ export function Topbar({ user }: TopbarProps) {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 md:px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-6">
       {/* Left side - hamburger on mobile */}
       <div className="flex items-center gap-2">
         <Button
@@ -66,6 +67,8 @@ export function Topbar({ user }: TopbarProps) {
           <AvailabilityToggle beraterId={user.beraterId} compact />
         )}
 
+        <ThemeToggle />
+
         <NotificationBell />
 
         <Badge
@@ -78,13 +81,13 @@ export function Topbar({ user }: TopbarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="default" className="gap-1 md:gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200">
-                <UserIcon className="h-4 w-4 text-gray-600" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
+                <UserIcon className="h-4 w-4 text-muted-foreground" />
               </div>
-              <span className="hidden max-w-[150px] truncate text-sm font-medium text-gray-700 sm:inline">
+              <span className="hidden max-w-[150px] truncate text-sm font-medium text-foreground sm:inline">
                 {user.full_name}
               </span>
-              <ChevronDown className="h-4 w-4 text-gray-500" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
 

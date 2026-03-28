@@ -9,15 +9,19 @@ interface LeadStatusBadgeProps {
 }
 
 export function LeadStatusBadge({ status, className }: LeadStatusBadgeProps) {
+  const label = getStatusLabel(status)
+
   return (
     <span
+      role="status"
+      aria-label={label}
       className={cn(
         "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
         getStatusColor(status),
         className
       )}
     >
-      {getStatusLabel(status)}
+      {label}
     </span>
   )
 }

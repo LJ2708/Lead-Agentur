@@ -29,7 +29,7 @@ export function SlaTimer({ deadline, status }: SlaTimerProps) {
 
   if (status === "met") {
     return (
-      <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600" role="timer" aria-label="SLA eingehalten">
         <CheckCircle2 className="h-3.5 w-3.5" />
         <span>SLA eingehalten</span>
       </div>
@@ -38,7 +38,7 @@ export function SlaTimer({ deadline, status }: SlaTimerProps) {
 
   if (status === "breached") {
     return (
-      <div className="flex items-center gap-1.5 text-xs font-medium text-red-600">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-red-600" role="timer" aria-label="SLA überschritten">
         <XCircle className="h-3.5 w-3.5" />
         <span>SLA überschritten</span>
       </div>
@@ -58,6 +58,9 @@ export function SlaTimer({ deadline, status }: SlaTimerProps) {
 
   return (
     <div
+      role="timer"
+      aria-live="polite"
+      aria-label={`${display} verbleibend`}
       className={cn(
         "flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums",
         isGreen && "bg-emerald-50 text-emerald-700",

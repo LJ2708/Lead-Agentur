@@ -1,0 +1,13 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0F172A"/>
+  <rect x="0" y="0" width="1200" height="4" fill="#2563EB"/>
+  <text x="600" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700">
+    <tspan fill="#2563EB">Lead</tspan><tspan fill="#F8FAFC">Solution</tspan>
+  </text>
+  <text x="600" y="340" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#94A3B8">
+    Qualifizierte Leads ab 39&#8364;
+  </text>
+  <text x="600" y="400" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#64748B">
+    Lead-Management &amp; Vertriebsplattform
+  </text>
+</svg>

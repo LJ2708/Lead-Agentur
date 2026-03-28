@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /berater
+Disallow: /setter
+Disallow: /api
+Sitemap: https://leadsolution.de/sitemap.xml

@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { MobileLayout } from "@/components/dashboard/MobileLayout";
 import { EventListener } from "@/components/dashboard/EventListener";
+import { SkipToContent } from "@/components/dashboard/SkipToContent";
 
 export default async function DashboardLayout({
   children,
@@ -94,21 +95,24 @@ export default async function DashboardLayout({
   }
 
   return (
-    <MobileLayout
-      sidebar={<Sidebar role={role} />}
-      topbar={
-        <Topbar
-          user={{
-            email: user.email ?? "",
-            full_name: profile.full_name ?? user.email ?? "User",
-            role,
-            beraterId: topbarBeraterId,
-          }}
-        />
-      }
-    >
-      <EventListener userId={user.id} beraterId={topbarBeraterId} />
-      {children}
-    </MobileLayout>
+    <>
+      <SkipToContent />
+      <MobileLayout
+        sidebar={<Sidebar role={role} />}
+        topbar={
+          <Topbar
+            user={{
+              email: user.email ?? "",
+              full_name: profile.full_name ?? user.email ?? "User",
+              role,
+              beraterId: topbarBeraterId,
+            }}
+          />
+        }
+      >
+        <EventListener userId={user.id} beraterId={topbarBeraterId} />
+        {children}
+      </MobileLayout>
+    </>
   );
 }

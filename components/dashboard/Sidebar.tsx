@@ -120,11 +120,12 @@ function SidebarNav({
                   <Link
                     href={item.href}
                     onClick={onItemClick}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
                       "relative flex h-10 w-full items-center justify-center rounded-lg transition-colors",
                       active
                         ? "bg-blue-50 text-blue-600"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -146,11 +147,12 @@ function SidebarNav({
             <Link
               href={item.href}
               onClick={onItemClick}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
                 active
                   ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -197,7 +199,7 @@ export function Sidebar({ role }: SidebarProps) {
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
         <span className="text-sm font-bold text-white">LS</span>
       </div>
-      <span className="text-lg font-semibold text-gray-900">LeadSolution</span>
+      <span className="text-lg font-semibold text-foreground">LeadSolution</span>
     </Link>
   );
 
@@ -206,12 +208,12 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden h-screen flex-col border-r border-gray-200 bg-white transition-all duration-200 md:flex",
+          "hidden h-screen flex-col border-r border-border bg-card transition-all duration-200 md:flex",
           collapsed ? "w-16" : "w-64"
         )}
       >
         {/* Brand */}
-        <div className="flex h-16 items-center border-b border-gray-200 px-4">
+        <div className="flex h-16 items-center border-b border-border px-4">
           {!collapsed && brandLink}
           {collapsed && (
             <Link href="/" className="mx-auto flex items-center justify-center">
@@ -223,7 +225,7 @@ export function Sidebar({ role }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-2 py-4">
+        <nav className="flex-1 overflow-y-auto px-2 py-4" role="navigation" aria-label="Hauptnavigation">
           <SidebarNav
             navItems={navItems}
             showBadges={showBadges}
@@ -233,13 +235,13 @@ export function Sidebar({ role }: SidebarProps) {
         </nav>
 
         {/* Collapse toggle */}
-        <div className="border-t border-gray-200 p-2">
+        <div className="border-t border-border p-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
-              "h-10 w-full text-gray-500 hover:text-gray-700",
+              "h-10 w-full text-muted-foreground hover:text-foreground",
               collapsed ? "justify-center" : "justify-end px-3"
             )}
           >
@@ -256,10 +258,10 @@ export function Sidebar({ role }: SidebarProps) {
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
         <SheetContent side="left" className="w-64 p-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <div className="flex h-16 items-center border-b border-gray-200 px-4">
+          <div className="flex h-16 items-center border-b border-border px-4">
             {brandLink}
           </div>
-          <nav className="flex-1 overflow-y-auto px-2 py-4">
+          <nav className="flex-1 overflow-y-auto px-2 py-4" role="navigation" aria-label="Hauptnavigation">
             <SidebarNav
               navItems={navItems}
               showBadges={showBadges}

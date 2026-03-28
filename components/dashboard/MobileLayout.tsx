@@ -32,7 +32,7 @@ export function MobileLayout({ sidebar, topbar, children }: MobileLayoutProps) {
 
   return (
     <SidebarContext.Provider value={{ isOpen, toggle, close }}>
-      <div className="flex h-screen overflow-hidden bg-gray-50">
+      <div className="flex h-screen overflow-hidden bg-background">
         {/* Desktop sidebar */}
         <div className="hidden md:block">{sidebar}</div>
 
@@ -41,7 +41,7 @@ export function MobileLayout({ sidebar, topbar, children }: MobileLayoutProps) {
 
         <div className="flex flex-1 flex-col overflow-hidden">
           {topbar}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+          <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 outline-none md:p-6">{children}</main>
         </div>
       </div>
     </SidebarContext.Provider>
