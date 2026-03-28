@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,6 +47,8 @@ import {
   Forward,
 } from "lucide-react";
 import type { Tables } from "@/types/database";
+import { useRealtimeLeads } from "@/hooks/useRealtimeLeads";
+import { useRealtimeActivities } from "@/hooks/useRealtimeActivities";
 
 type Lead = Tables<"leads"> & {
   berater_name?: string | null;
@@ -61,7 +63,7 @@ type FilterTab = "alle" | "sofort" | "rueckruf" | "followup" | "erledigt";
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: "alle", label: "Alle" },
   { key: "sofort", label: "Sofort anrufen" },
-  { key: "rueckruf", label: "Rückruf" },
+  { key: "rueckruf", label: "Rueckruf" },
   { key: "followup", label: "Follow-up" },
   { key: "erledigt", label: "Erledigt" },
 ];
@@ -129,11 +131,8 @@ export default function SetterWorkListPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [activitiesMap, setActivitiesMap] = useState<
-    Record<string, Activity[]>
-  >({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [beraterNames, setBeraterNames] = useState<Record<string, string | null>>({});
   const [activeFilter, setActiveFilter] = useState<FilterTab>("alle");
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [outcomeLeadId, setOutcomeLeadId] = useState<string | null>(null);
@@ -141,73 +140,93 @@ export default function SetterWorkListPage() {
   const [statusLoadingId, setStatusLoadingId] = useState<string | null>(null);
   const [weitergebenLeadId, setWeitergebenLeadId] = useState<string | null>(null);
 
-  const fetchLeads = useCallback(async () => {
-    setIsLoading(true);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("leads")
-      .select(
-        "*, berater:berater_id(id, profile_id, profiles:profile_id(full_name))"
-      )
-      .eq("setter_id", user.id)
-      .order("created_at", { ascending: false });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const enrichedLeads: Lead[] = (data ?? []).map((l: any) => ({
-      ...l,
-      berater_name: l.berater?.profiles
-        ? (l.berater.profiles.full_name ?? null)
-        : null,
-      berater: undefined,
-    }));
-
-    setLeads(enrichedLeads);
-
-    // Fetch activities for all leads
-    const leadIds = enrichedLeads.map((l) => l.id);
-    if (leadIds.length > 0) {
-      const { data: allActivities } = await supabase
-        .from("lead_activities")
-        .select("*, profiles:created_by(full_name)")
-        .in("lead_id", leadIds)
-        .order("created_at", { ascending: false });
-
-      const map: Record<string, Activity[]> = {};
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const a of (allActivities ?? []) as any[]) {
-        const activity: Activity = {
-          ...a,
-          created_by_name: a.profiles?.full_name ?? null,
-          profiles: undefined,
-        };
-        if (!map[activity.lead_id]) map[activity.lead_id] = [];
-        map[activity.lead_id].push(activity);
+  // Fetch current user ID
+  useEffect(() => {
+    async function fetchUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
       }
-      setActivitiesMap(map);
+    }
+    fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Use realtime leads filtered by setter_id
+  const { leads: realtimeLeads, loading: leadsLoading, refresh: refreshLeads } =
+    useRealtimeLeads({ setterId: userId ?? undefined });
+
+  // Enrich leads with berater names
+  useEffect(() => {
+    if (realtimeLeads.length === 0) return;
+
+    const beraterIds = Array.from(
+      new Set(
+        realtimeLeads
+          .map((l) => l.berater_id)
+          .filter((id): id is string => id != null)
+      )
+    );
+
+    if (beraterIds.length === 0) return;
+
+    async function fetchBeraterNames() {
+      const { data } = await supabase
+        .from("berater")
+        .select("id, profiles:profile_id(full_name)")
+        .in("id", beraterIds);
+
+      if (data) {
+        const names: Record<string, string | null> = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const b of data as any[]) {
+          names[b.id] = b.profiles?.full_name ?? null;
+        }
+        setBeraterNames(names);
+      }
     }
 
-    setIsLoading(false);
+    fetchBeraterNames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase]);
+  }, [realtimeLeads]);
 
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+  const enrichedLeads: Lead[] = useMemo(
+    () =>
+      realtimeLeads.map((l) => ({
+        ...l,
+        berater_name: l.berater_id ? (beraterNames[l.berater_id] ?? null) : null,
+      })),
+    [realtimeLeads, beraterNames]
+  );
+
+  // Use realtime activities
+  const leadIds = useMemo(
+    () => enrichedLeads.map((l) => l.id),
+    [enrichedLeads]
+  );
+  const { activities: realtimeActivities } = useRealtimeActivities(leadIds);
+
+  // Build activities map
+  const activitiesMap = useMemo(() => {
+    const map: Record<string, Activity[]> = {};
+    for (const a of realtimeActivities) {
+      if (!map[a.lead_id]) map[a.lead_id] = [];
+      map[a.lead_id].push(a as Activity);
+    }
+    return map;
+  }, [realtimeActivities]);
 
   // Compute scores and sort
   const scoredLeads = useMemo(() => {
-    return leads.map((lead) => {
+    return enrichedLeads.map((lead) => {
       const activities = activitiesMap[lead.id] ?? [];
       const score = calculateLeadScore(lead, activities);
       const priority = getPriorityCategory(lead);
       return { lead, score, priority, activities };
     });
-  }, [leads, activitiesMap]);
+  }, [enrichedLeads, activitiesMap]);
 
   const filteredLeads = useMemo(() => {
     return scoredLeads
@@ -225,11 +244,11 @@ export default function SetterWorkListPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const active = leads.filter(
+    const active = enrichedLeads.filter(
       (l) => !["abschluss", "verloren"].includes(l.status)
     ).length;
 
-    const contactedToday = leads.filter((l) => {
+    const contactedToday = enrichedLeads.filter((l) => {
       const activities = activitiesMap[l.id] ?? [];
       return activities.some(
         (a) =>
@@ -238,22 +257,22 @@ export default function SetterWorkListPage() {
       );
     }).length;
 
-    const termine = leads.filter((l) => l.status === "termin").length;
+    const termine = enrichedLeads.filter((l) => l.status === "termin").length;
 
     const contactRate =
-      leads.length > 0
+      enrichedLeads.length > 0
         ? Math.round(
-            (leads.filter((l) => l.kontaktversuche > 0).length /
-              leads.length) *
+            (enrichedLeads.filter((l) => l.kontaktversuche > 0).length /
+              enrichedLeads.length) *
               100
           )
         : 0;
 
     return { active, contactedToday, termine, contactRate };
-  }, [leads, activitiesMap]);
+  }, [enrichedLeads, activitiesMap]);
 
   const outcomeLead = outcomeLeadId
-    ? leads.find((l) => l.id === outcomeLeadId) ?? null
+    ? enrichedLeads.find((l) => l.id === outcomeLeadId) ?? null
     : null;
 
   async function handleStatusChange(
@@ -261,18 +280,10 @@ export default function SetterWorkListPage() {
     newStatus: string,
     notiz?: string
   ) {
-    const lead = leads.find((l) => l.id === leadId);
-    if (!lead) return;
+    const lead = enrichedLeads.find((l) => l.id === leadId);
+    if (!lead || !userId) return;
 
     setStatusLoadingId(leadId);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setStatusLoadingId(null);
-      return;
-    }
 
     await supabase
       .from("leads")
@@ -288,16 +299,17 @@ export default function SetterWorkListPage() {
     await supabase.from("lead_activities").insert({
       lead_id: leadId,
       type: "status_change",
-      title: "Status geändert",
-      description: `Status geändert: ${oldLabel} \u2192 ${newLabel}${notiz ? ` - ${notiz}` : ""}`,
+      title: "Status geaendert",
+      description: `Status geaendert: ${oldLabel} \u2192 ${newLabel}${notiz ? ` - ${notiz}` : ""}`,
       old_value: lead.status,
       new_value: newStatus,
-      created_by: user.id,
+      created_by: userId,
     });
 
     setStatusChangingId(null);
     setStatusLoadingId(null);
-    await fetchLeads();
+    // Realtime will pick up the changes automatically, but refresh for safety
+    refreshLeads();
   }
 
   async function handleWeitergeben(leadId: string, targetStatus: "qualifiziert" | "nicht_erreicht") {
@@ -395,7 +407,7 @@ export default function SetterWorkListPage() {
       </div>
 
       {/* Lead Cards */}
-      {isLoading ? (
+      {leadsLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-40 w-full rounded-lg" />
@@ -482,7 +494,7 @@ export default function SetterWorkListPage() {
                     leadId={lead.id}
                     kontaktversuche={lead.kontaktversuche}
                     maxKontaktversuche={lead.max_kontaktversuche ?? 5}
-                    onAttemptLogged={() => fetchLeads()}
+                    onAttemptLogged={() => refreshLeads()}
                   />
                   {lead.kontaktversuche >= (lead.max_kontaktversuche ?? 5) && (
                     <div className="flex items-center gap-2">
@@ -536,7 +548,7 @@ export default function SetterWorkListPage() {
                       opt_in_whatsapp: lead.opt_in_whatsapp,
                     }}
                     onCallComplete={() => setOutcomeLeadId(lead.id)}
-                    onActionComplete={() => fetchLeads()}
+                    onActionComplete={() => refreshLeads()}
                   />
                 </div>
 
@@ -549,7 +561,7 @@ export default function SetterWorkListPage() {
                       }}
                     >
                       <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Status wählen..." />
+                        <SelectValue placeholder="Status waehlen..." />
                       </SelectTrigger>
                       <SelectContent>
                         {getValidTransitions(
@@ -581,7 +593,7 @@ export default function SetterWorkListPage() {
                       className="text-xs text-muted-foreground"
                       onClick={() => setStatusChangingId(lead.id)}
                     >
-                      Status ändern
+                      Status aendern
                     </Button>
                   </div>
                 )}
@@ -604,7 +616,7 @@ export default function SetterWorkListPage() {
                       ) : (
                         <ChevronRight className="mr-1 h-3 w-3" />
                       )}
-                      Aktivitäten ({activities.length})
+                      Aktivitaeten ({activities.length})
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -628,7 +640,7 @@ export default function SetterWorkListPage() {
           onClose={() => setOutcomeLeadId(null)}
           onComplete={() => {
             setOutcomeLeadId(null);
-            fetchLeads();
+            refreshLeads();
           }}
         />
       )}

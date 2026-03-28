@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useState, useCallback, useMemo } from "react"
 import type { Tables, Database } from "@/types/database"
 import {
   calculateLeadScore,
   type LeadScore,
 } from "@/lib/scoring/lead-score"
+import { useRealtimeLeads } from "@/hooks/useRealtimeLeads"
+import { useRealtimeActivities } from "@/hooks/useRealtimeActivities"
 import { LeadCard } from "@/components/dashboard/LeadCard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,7 +22,6 @@ import {
   RefreshCw,
   AlertTriangle,
 } from "lucide-react"
-import { toast } from "sonner"
 
 type Lead = Tables<"leads">
 type Activity = Tables<"lead_activities">
@@ -124,75 +124,52 @@ function InboxSkeleton() {
 }
 
 export function SmartInbox({ beraterId }: SmartInboxProps) {
-  const [scoredLeads, setScoredLeads] = useState<ScoredLead[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const { leads: realtimeLeads, loading: leadsLoading, refresh: refreshLeads } =
+    useRealtimeLeads({ beraterId })
 
-  const fetchLeads = useCallback(async () => {
-    setLoading(true)
-    const supabase = createClient()
+  // Filter out completed leads
+  const activeLeads = useMemo(
+    () =>
+      realtimeLeads.filter(
+        (l) => !["abschluss", "verloren"].includes(l.status)
+      ),
+    [realtimeLeads]
+  )
 
-    try {
-      // Fetch active leads for this berater
-      const { data: leads, error: leadsError } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("berater_id", beraterId)
-        .not("status", "in", '("abschluss","verloren")')
-        .order("created_at", { ascending: false })
+  const leadIds = useMemo(() => activeLeads.map((l) => l.id), [activeLeads])
+  const { activities: realtimeActivities } = useRealtimeActivities(leadIds)
 
-      if (leadsError) throw leadsError
-      if (!leads || leads.length === 0) {
-        setScoredLeads([])
-        setLoading(false)
-        return
-      }
-
-      // Fetch activities for all these leads
-      const leadIds = leads.map((l) => l.id)
-      const { data: activities } = await supabase
-        .from("lead_activities")
-        .select("*")
-        .in("lead_id", leadIds)
-        .order("created_at", { ascending: false })
-
-      const activitiesByLead = new Map<string, Activity[]>()
-      for (const activity of activities ?? []) {
-        const existing = activitiesByLead.get(activity.lead_id) ?? []
-        existing.push(activity)
-        activitiesByLead.set(activity.lead_id, existing)
-      }
-
-      // Calculate scores
-      const scored: ScoredLead[] = leads.map((lead) => {
-        const leadActivities = activitiesByLead.get(lead.id) ?? []
-        const score = calculateLeadScore(lead, leadActivities)
-        const lastActivityAt =
-          leadActivities.length > 0
-            ? leadActivities[0].created_at
-            : lead.zugewiesen_am
-
-        return { lead, score, activities: leadActivities, lastActivityAt }
-      })
-
-      // Sort by score descending within each priority
-      scored.sort((a, b) => b.score.total - a.score.total)
-
-      setScoredLeads(scored)
-    } catch {
-      toast.error("Fehler beim Laden der Leads")
-    } finally {
-      setLoading(false)
+  // Build activities map
+  const activitiesByLead = useMemo(() => {
+    const map = new Map<string, Activity[]>()
+    for (const activity of realtimeActivities) {
+      const existing = map.get(activity.lead_id) ?? []
+      existing.push(activity)
+      map.set(activity.lead_id, existing)
     }
-  }, [beraterId])
+    return map
+  }, [realtimeActivities])
 
-  useEffect(() => {
-    fetchLeads()
-  }, [fetchLeads, refreshKey])
+  // Calculate scores
+  const scoredLeads = useMemo(() => {
+    const scored: ScoredLead[] = activeLeads.map((lead) => {
+      const leadActivities = activitiesByLead.get(lead.id) ?? []
+      const score = calculateLeadScore(lead, leadActivities)
+      const lastActivityAt =
+        leadActivities.length > 0
+          ? leadActivities[0].created_at
+          : lead.zugewiesen_am
+
+      return { lead, score, activities: leadActivities, lastActivityAt }
+    })
+
+    scored.sort((a, b) => b.score.total - a.score.total)
+    return scored
+  }, [activeLeads, activitiesByLead])
 
   const handleRefresh = useCallback(() => {
-    setRefreshKey((k) => k + 1)
-  }, [])
+    refreshLeads()
+  }, [refreshLeads])
 
   const { slaLeads, hotLeads, warmLeads, coldLeads } = useMemo(() => {
     const sla: ScoredLead[] = []
@@ -221,7 +198,7 @@ export function SmartInbox({ beraterId }: SmartInboxProps) {
     return { slaLeads: sla, hotLeads: hot, warmLeads: warm, coldLeads: cold }
   }, [scoredLeads])
 
-  if (loading) {
+  if (leadsLoading) {
     return (
       <div>
         <div className="mb-4 flex items-center justify-between">
@@ -261,7 +238,7 @@ export function SmartInbox({ beraterId }: SmartInboxProps) {
 
       <div className="space-y-6">
         <InboxSection
-          title="SLA läuft ab"
+          title="SLA laeuft ab"
           icon={<AlertTriangle className="h-4 w-4 text-red-600" />}
           leads={slaLeads}
           defaultOpen
