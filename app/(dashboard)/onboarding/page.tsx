@@ -1,61 +1,59 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { formatEuro, cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
+import { formatEuro, cn } from "@/lib/utils"
+import {
+  calcGesamtpreis,
+  calcPreisProLead,
+  formatPreis,
+  MIN_LEADS,
+  MAX_LEADS,
+  SETTER_AUFPREIS,
+  MINDESTLAUFZEIT,
+} from "@/lib/pricing/calculator"
+import type { PricingResult } from "@/lib/pricing/calculator"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Slider } from "@/components/ui/slider"
 import {
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
-  Package,
+  SlidersHorizontal,
   Phone,
   Clock,
   CreditCard,
   PartyPopper,
   Loader2,
-  Sparkles,
-  Shield,
   Zap,
-} from "lucide-react";
-import { WorkingHoursEditor } from "@/components/dashboard/WorkingHoursEditor";
+  Building2,
+  Users,
+  UserCheck,
+} from "lucide-react"
+import { WorkingHoursEditor } from "@/components/dashboard/WorkingHoursEditor"
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
 /* -------------------------------------------------------------------------- */
 
-interface LeadPaket {
-  id: string;
-  name: string;
-  beschreibung: string | null;
-  leads_pro_monat: number;
-  preis_pro_lead_cents: number;
-  gesamtpreis_cents: number;
-  mindestlaufzeit_monate: number;
-  setter_aufpreis_cents: number;
-  stripe_price_id: string | null;
-  is_active: boolean;
-}
-
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5
+type SetterTyp = "pool" | "eigen" | "keiner"
 
 const STEP_META: { step: Step; label: string; icon: React.ElementType }[] = [
-  { step: 1, label: "Paketauswahl", icon: Package },
+  { step: 1, label: "Lead-Anzahl", icon: SlidersHorizontal },
   { step: 2, label: "Setter-Addon", icon: Phone },
   { step: 3, label: "Arbeitszeiten", icon: Clock },
   { step: 4, label: "Zusammenfassung", icon: CreditCard },
   { step: 5, label: "Erfolg", icon: PartyPopper },
-];
+]
 
 /* -------------------------------------------------------------------------- */
 /*  Step indicator                                                            */
@@ -66,8 +64,8 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
     <nav aria-label="Onboarding Fortschritt" className="mb-10">
       <ol className="flex items-center justify-center gap-2 sm:gap-4">
         {STEP_META.map(({ step, label, icon: Icon }, idx) => {
-          const isActive = step === currentStep;
-          const isCompleted = step < currentStep;
+          const isActive = step === currentStep
+          const isCompleted = step < currentStep
           return (
             <li key={step} className="flex items-center gap-2 sm:gap-4">
               {idx > 0 && (
@@ -109,11 +107,11 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
                 </span>
               </div>
             </li>
-          );
+          )
         })}
       </ol>
     </nav>
-  );
+  )
 }
 
 /* -------------------------------------------------------------------------- */
@@ -121,96 +119,101 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 /* -------------------------------------------------------------------------- */
 
 export default function OnboardingPage() {
-  const router = useRouter();
-  const [step, setStep] = useState<Step>(1);
-  const [pakete, setPakete] = useState<LeadPaket[]>([]);
-  const [loadingPakete, setLoadingPakete] = useState(true);
-  const [selectedPaketId, setSelectedPaketId] = useState<string | null>(null);
-  const [hatSetter, setHatSetter] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [beraterId, setBeraterId] = useState<string | null>(null);
-  const [workingHoursSaved, setWorkingHoursSaved] = useState(false);
+  const router = useRouter()
+  const [step, setStep] = useState<Step>(1)
 
-  const selectedPaket = pakete.find((p) => p.id === selectedPaketId) ?? null;
+  // Step 1 state
+  const [leadsCount, setLeadsCount] = useState(10)
+  const [pricing, setPricing] = useState<PricingResult>(() =>
+    calcGesamtpreis(10, false)
+  )
 
-  // Fetch active pakete and berater ID on mount
+  // Step 2 state
+  const [setterTyp, setSetterTyp] = useState<SetterTyp>("keiner")
+  const hatSetter = setterTyp !== "keiner"
+
+  // Step 3 state
+  const [beraterId, setBeraterId] = useState<string | null>(null)
+  const [workingHoursSaved, setWorkingHoursSaved] = useState(false)
+
+  // General state
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Recalculate pricing when leads or setter changes
   useEffect(() => {
-    async function fetchInitialData() {
-      const supabase = createClient();
+    setPricing(calcGesamtpreis(leadsCount, hatSetter))
+  }, [leadsCount, hatSetter])
 
-      const { data, error } = await supabase
-        .from("lead_pakete")
-        .select("*")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
-
-      if (error) {
-        console.error("Pakete konnten nicht geladen werden:", error);
-        setError("Pakete konnten nicht geladen werden. Bitte laden Sie die Seite neu.");
-      } else {
-        setPakete(data ?? []);
-      }
-      setLoadingPakete(false);
-
-      // Try to fetch existing berater ID
+  // Try to fetch existing berater ID on mount
+  useEffect(() => {
+    async function fetchBeraterId() {
+      const supabase = createClient()
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getUser()
       if (user) {
         const { data: beraterData } = await supabase
           .from("berater")
           .select("id")
           .eq("profile_id", user.id)
-          .single();
+          .single()
         if (beraterData) {
-          setBeraterId(beraterData.id);
+          setBeraterId(beraterData.id)
         }
       }
     }
-    fetchInitialData();
-  }, []);
+    fetchBeraterId()
+  }, [])
 
   /* ---------------------------------------------------------------------- */
   /*  Demo activation                                                       */
   /* ---------------------------------------------------------------------- */
 
   const activateDemo = useCallback(async () => {
-    if (!selectedPaket) return;
-    setSubmitting(true);
-    setError(null);
+    setSubmitting(true)
+    setError(null)
 
     try {
-      const supabase = createClient();
+      const supabase = createClient()
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getUser()
 
       if (!user) {
-        setError("Sie sind nicht angemeldet.");
-        setSubmitting(false);
-        return;
+        setError("Sie sind nicht angemeldet.")
+        setSubmitting(false)
+        return
       }
 
-      // Upsert berater record
+      const preisProLeadCents = calcPreisProLead(leadsCount) * 100
+
+      // Upsert berater record with flexible pricing fields
       const { error: beraterError } = await supabase.from("berater").upsert(
         {
           profile_id: user.id,
-          lead_paket_id: selectedPaket.id,
-          status: "aktiv",
-          subscription_status: "active",
+          status: "aktiv" as const,
+          subscription_status: "active" as const,
           hat_setter: hatSetter,
-          leads_kontingent: selectedPaket.leads_pro_monat,
+          setter_typ: setterTyp,
+          leads_kontingent: leadsCount,
           leads_geliefert: 0,
+          leads_pro_monat: leadsCount,
+          preis_pro_lead_cents: preisProLeadCents,
         },
         { onConflict: "profile_id" }
-      );
+      )
 
       if (beraterError) {
-        console.error("Berater-Datensatz konnte nicht erstellt werden:", beraterError);
-        setError("Aktivierung fehlgeschlagen. Bitte versuchen Sie es erneut.");
-        setSubmitting(false);
-        return;
+        console.error(
+          "Berater-Datensatz konnte nicht erstellt werden:",
+          beraterError
+        )
+        setError(
+          "Aktivierung fehlgeschlagen. Bitte versuchen Sie es erneut."
+        )
+        setSubmitting(false)
+        return
       }
 
       // Fetch the berater ID for working hours
@@ -218,33 +221,19 @@ export default function OnboardingPage() {
         .from("berater")
         .select("id")
         .eq("profile_id", user.id)
-        .single();
+        .single()
 
       if (beraterData) {
-        setBeraterId(beraterData.id);
+        setBeraterId(beraterData.id)
       }
 
-      setStep(5);
+      setStep(5)
     } catch {
-      setError("Ein unerwarteter Fehler ist aufgetreten.");
+      setError("Ein unerwarteter Fehler ist aufgetreten.")
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  }, [selectedPaket, hatSetter]);
-
-  /* ---------------------------------------------------------------------- */
-  /*  Helpers                                                                */
-  /* ---------------------------------------------------------------------- */
-
-  function gesamtpreisWithSetter(paket: LeadPaket): number {
-    if (!hatSetter) return paket.gesamtpreis_cents;
-    return paket.gesamtpreis_cents + paket.setter_aufpreis_cents * paket.leads_pro_monat;
-  }
-
-  function preisProLeadWithSetter(paket: LeadPaket): number {
-    if (!hatSetter) return paket.preis_pro_lead_cents;
-    return paket.preis_pro_lead_cents + paket.setter_aufpreis_cents;
-  }
+  }, [leadsCount, hatSetter, setterTyp])
 
   /* ---------------------------------------------------------------------- */
   /*  Render                                                                */
@@ -261,141 +250,154 @@ export default function OnboardingPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/*  Step 1 — Paketauswahl                                            */}
+      {/*  Step 1 — Lead-Anzahl waehlen                                      */}
       {/* ------------------------------------------------------------------ */}
       {step === 1 && (
         <div>
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-gray-900">
-              Wählen Sie Ihr Lead-Paket
+              Lead-Anzahl w\u00e4hlen
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Wählen Sie das Paket, das am besten zu Ihrem Geschäft passt.
+              W\u00e4hlen Sie, wie viele Leads Sie pro Monat erhalten m\u00f6chten.
+              Je mehr Leads, desto g\u00fcnstiger der Preis pro Lead.
             </p>
           </div>
 
-          {loadingPakete ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
-            </div>
-          ) : pakete.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground">
-              Keine Pakete verfügbar. Bitte kontaktieren Sie den Support.
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {pakete.map((paket) => {
-                  const isSelected = selectedPaketId === paket.id;
-                  const isPopular = paket.name.toLowerCase().includes("standard");
+          <div className="mx-auto max-w-2xl space-y-8">
+            {/* Slider */}
+            <Card>
+              <CardContent className="space-y-6 p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {MIN_LEADS} Leads
+                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {MAX_LEADS} Leads
+                  </span>
+                </div>
 
-                  return (
-                    <Card
-                      key={paket.id}
+                <Slider
+                  value={[leadsCount]}
+                  onValueChange={(value) => setLeadsCount(value[0])}
+                  min={MIN_LEADS}
+                  max={MAX_LEADS}
+                  step={5}
+                />
+
+                {/* Live price display */}
+                <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-6 text-center">
+                  <div className="text-4xl font-bold text-gray-900">
+                    {leadsCount}{" "}
+                    <span className="text-lg font-normal text-muted-foreground">
+                      Leads
+                    </span>
+                  </div>
+                  <div className="mt-3 text-lg text-gray-700">
+                    {leadsCount} Leads &times;{" "}
+                    {formatPreis(pricing.preisProLead)} ={" "}
+                    <span className="font-bold text-[#2563EB]">
+                      {formatPreis(pricing.monatspreis)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {" "}
+                      / Monat
+                    </span>
+                  </div>
+                  {pricing.ersparnis > 0 && (
+                    <div className="mt-2 text-sm text-green-600">
+                      Sie sparen {formatPreis(pricing.ersparnis)} / Monat
+                      gegen\u00fcber dem Einzelpreis
+                    </div>
+                  )}
+                </div>
+
+                {/* Tick marks */}
+                <div className="flex justify-between px-1 text-xs text-muted-foreground">
+                  {[10, 15, 20, 25, 30, 35, 40, 45, 50].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setLeadsCount(val)}
                       className={cn(
-                        "relative cursor-pointer transition-all duration-200 hover:shadow-lg",
-                        isSelected
-                          ? "border-[#2563EB] ring-2 ring-[#2563EB] shadow-lg"
-                          : "border-gray-200 hover:border-[#2563EB]/40",
-                        isPopular && !isSelected && "border-blue-200"
+                        "rounded px-1 py-0.5 transition-colors hover:bg-gray-100",
+                        val === leadsCount && "font-bold text-[#2563EB]"
                       )}
-                      onClick={() => setSelectedPaketId(paket.id)}
                     >
-                      {isPopular && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                          <Badge className="bg-[#2563EB] text-white hover:bg-[#2563EB] shadow-sm">
-                            <Sparkles className="mr-1 h-3 w-3" />
-                            Beliebtestes Paket
-                          </Badge>
-                        </div>
-                      )}
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-                      <CardHeader className={cn("pb-4", isPopular && "pt-8")}>
-                        <CardTitle className="text-lg">{paket.name}</CardTitle>
-                        {paket.beschreibung && (
-                          <CardDescription className="text-sm">
-                            {paket.beschreibung}
-                          </CardDescription>
-                        )}
-                      </CardHeader>
+            {/* Enterprise banner at 50 leads */}
+            {pricing.isEnterprise && (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                    <Building2 className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      Enterprise-Angebot
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Bei 50+ Leads erstellen wir Ihnen gerne ein individuelles
+                      Angebot mit noch besseren Konditionen.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-                      <CardContent className="space-y-4">
-                        <div>
-                          <div className="text-3xl font-bold text-gray-900">
-                            {formatEuro(paket.gesamtpreis_cents)}
-                          </div>
-                          <p className="text-sm text-muted-foreground">pro Monat</p>
-                        </div>
-
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
-                            <span>
-                              <strong>{paket.leads_pro_monat}</strong> Leads pro Monat
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
-                            <span>
-                              {formatEuro(paket.preis_pro_lead_cents)} pro Lead
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
-                            <span>
-                              {paket.mindestlaufzeit_monate} Monate Mindestlaufzeit
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-
-                      <CardFooter>
-                        <Button
-                          variant={isSelected ? "default" : "outline"}
-                          className={cn(
-                            "w-full",
-                            isSelected
-                              ? "bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
-                              : ""
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPaketId(paket.id);
-                          }}
-                        >
-                          {isSelected ? "Ausgewählt" : "Auswählen"}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
+            {/* Summary facts */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-lg border p-4 text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {formatPreis(pricing.preisProLead)}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">pro Lead</p>
               </div>
-
-              <div className="mt-8 flex justify-end">
-                <Button
-                  size="lg"
-                  className="bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
-                  disabled={!selectedPaketId}
-                  onClick={() => setStep(2)}
-                >
-                  Weiter
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
+              <div className="rounded-lg border p-4 text-center">
+                <div className="text-2xl font-bold text-[#2563EB]">
+                  {formatPreis(pricing.monatspreis)}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">pro Monat</p>
               </div>
-            </>
-          )}
+              <div className="rounded-lg border p-4 text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {MINDESTLAUFZEIT}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Monate Mindestlaufzeit
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                size="lg"
+                className="bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+                onClick={() => setStep(2)}
+              >
+                Weiter
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* ------------------------------------------------------------------ */}
       {/*  Step 2 — Setter-Addon                                            */}
       {/* ------------------------------------------------------------------ */}
-      {step === 2 && selectedPaket && (
+      {step === 2 && (
         <div>
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-gray-900">Setter-Addon</h2>
             <p className="mt-2 text-muted-foreground">
-              Möchten Sie Ihre Leads telefonisch vorqualifizieren lassen?
+              M\u00f6chten Sie Ihre Leads telefonisch vorqualifizieren lassen?
             </p>
           </div>
 
@@ -407,11 +409,14 @@ export default function OnboardingPage() {
                   <Phone className="h-6 w-6 text-[#2563EB]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Was ist ein Setter?</h3>
+                  <h3 className="font-semibold text-gray-900">
+                    Was ist ein Setter?
+                  </h3>
                   <p className="mt-1 text-sm text-gray-600">
-                    Ein Setter kontaktiert Ihre Leads telefonisch und qualifiziert
-                    sie vor, bevor sie an Sie übergeben werden. So erhalten Sie nur
-                    Leads, die wirklich interessiert und bereit sind.
+                    Ein Setter kontaktiert Ihre Leads telefonisch und
+                    qualifiziert sie vor, bevor sie an Sie \u00fcbergeben werden. So
+                    erhalten Sie nur Leads, die wirklich interessiert und bereit
+                    sind.
                   </p>
                 </div>
               </CardContent>
@@ -421,18 +426,18 @@ export default function OnboardingPage() {
             <Card
               className={cn(
                 "cursor-pointer transition-all duration-200",
-                !hatSetter
+                setterTyp === "keiner"
                   ? "border-[#2563EB] ring-2 ring-[#2563EB] shadow-lg"
                   : "border-gray-200 hover:border-[#2563EB]/40 hover:shadow-md"
               )}
-              onClick={() => setHatSetter(false)}
+              onClick={() => setSetterTyp("keiner")}
             >
               <CardContent className="flex items-center justify-between p-6">
                 <div className="flex items-center gap-4">
                   <div
                     className={cn(
                       "flex h-12 w-12 items-center justify-center rounded-full",
-                      !hatSetter
+                      setterTyp === "keiner"
                         ? "bg-[#2563EB] text-white"
                         : "bg-gray-100 text-gray-400"
                     )}
@@ -442,67 +447,127 @@ export default function OnboardingPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900">Ohne Setter</h3>
                     <p className="text-sm text-muted-foreground">
-                      Sie erhalten Leads direkt ohne telefonische Vorqualifikation.
+                      Sie erhalten Leads direkt ohne telefonische
+                      Vorqualifikation.
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold text-gray-900">
-                    {formatEuro(selectedPaket.gesamtpreis_cents)}
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, false).monatspreis
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {formatEuro(selectedPaket.preis_pro_lead_cents)} / Lead
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, false).preisProLead
+                    )}{" "}
+                    / Lead
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* With Setter */}
+            {/* With LeadSolution Setter (Pool) */}
             <Card
               className={cn(
                 "cursor-pointer transition-all duration-200",
-                hatSetter
+                setterTyp === "pool"
                   ? "border-[#2563EB] ring-2 ring-[#2563EB] shadow-lg"
                   : "border-gray-200 hover:border-[#2563EB]/40 hover:shadow-md"
               )}
-              onClick={() => setHatSetter(true)}
+              onClick={() => setSetterTyp("pool")}
             >
               <CardContent className="flex items-center justify-between p-6">
                 <div className="flex items-center gap-4">
                   <div
                     className={cn(
                       "flex h-12 w-12 items-center justify-center rounded-full",
-                      hatSetter
+                      setterTyp === "pool"
                         ? "bg-[#2563EB] text-white"
                         : "bg-gray-100 text-gray-400"
                     )}
                   >
-                    <Shield className="h-6 w-6" />
+                    <Users className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      Mit Setter
+                      LeadSolution Setter
                       <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
                         Empfohlen
                       </Badge>
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Telefonische Vorqualifikation durch erfahrene Setter.
+                      Unser erfahrenes Setter-Team qualifiziert Ihre Leads vor.
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold text-gray-900">
-                    {formatEuro(gesamtpreisWithSetter(selectedPaket))}
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, true).monatspreis
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {formatEuro(preisProLeadWithSetter(selectedPaket))} / Lead
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, true).gesamtProLead
+                    )}{" "}
+                    / Lead
                   </p>
-                  {selectedPaket.setter_aufpreis_cents > 0 && (
-                    <p className="text-xs text-[#2563EB]">
-                      +{formatEuro(selectedPaket.setter_aufpreis_cents)} Aufpreis / Lead
+                  <p className="text-xs text-[#2563EB]">
+                    +{formatEuro(SETTER_AUFPREIS * 100)} Aufpreis / Lead
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* With own Setter */}
+            <Card
+              className={cn(
+                "cursor-pointer transition-all duration-200",
+                setterTyp === "eigen"
+                  ? "border-[#2563EB] ring-2 ring-[#2563EB] shadow-lg"
+                  : "border-gray-200 hover:border-[#2563EB]/40 hover:shadow-md"
+              )}
+              onClick={() => setSetterTyp("eigen")}
+            >
+              <CardContent className="flex items-center justify-between p-6">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-full",
+                      setterTyp === "eigen"
+                        ? "bg-[#2563EB] text-white"
+                        : "bg-gray-100 text-gray-400"
+                    )}
+                  >
+                    <UserCheck className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      Eigener Setter
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Nutzen Sie Ihren eigenen Setter f\u00fcr die
+                      Vorqualifikation.
                     </p>
-                  )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-gray-900">
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, true).monatspreis
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, true).gesamtProLead
+                    )}{" "}
+                    / Lead
+                  </p>
+                  <p className="text-xs text-[#2563EB]">
+                    +{formatEuro(SETTER_AUFPREIS * 100)} Aufpreis / Lead
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -510,7 +575,7 @@ export default function OnboardingPage() {
             <div className="flex justify-between pt-4">
               <Button variant="outline" size="lg" onClick={() => setStep(1)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Zurück
+                Zur\u00fcck
               </Button>
               <Button
                 size="lg"
@@ -535,8 +600,8 @@ export default function OnboardingPage() {
               Arbeitszeiten festlegen
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Legen Sie fest, wann Sie für neue Leads erreichbar sind.
-              Außerhalb dieser Zeiten werden keine Leads zugewiesen.
+              Legen Sie fest, wann Sie f\u00fcr neue Leads erreichbar sind.
+              Au\u00dferhalb dieser Zeiten werden keine Leads zugewiesen.
             </p>
           </div>
 
@@ -550,7 +615,7 @@ export default function OnboardingPage() {
               <div className="text-center text-sm text-muted-foreground">
                 <p>
                   Arbeitszeiten werden nach der Paketaktivierung gespeichert.
-                  Sie können die Standardzeiten (Mo-Fr 09:00-18:00) später
+                  Sie k\u00f6nnen die Standardzeiten (Mo-Fr 09:00-18:00) sp\u00e4ter
                   anpassen.
                 </p>
                 <Button
@@ -567,7 +632,7 @@ export default function OnboardingPage() {
             <div className="flex justify-between pt-4">
               <Button variant="outline" size="lg" onClick={() => setStep(2)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Zurück
+                Zur\u00fcck
               </Button>
               <Button
                 size="lg"
@@ -586,12 +651,14 @@ export default function OnboardingPage() {
       {/* ------------------------------------------------------------------ */}
       {/*  Step 4 — Zusammenfassung & Checkout                              */}
       {/* ------------------------------------------------------------------ */}
-      {step === 4 && selectedPaket && (
+      {step === 4 && (
         <div>
           <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900">Zusammenfassung</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Zusammenfassung
+            </h2>
             <p className="mt-2 text-muted-foreground">
-              Überprüfen Sie Ihre Auswahl, bevor Sie fortfahren.
+              \u00dcberpr\u00fcfen Sie Ihre Auswahl, bevor Sie fortfahren.
             </p>
           </div>
 
@@ -601,19 +668,22 @@ export default function OnboardingPage() {
                 <CardTitle className="text-lg">Ihre Bestellung</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Paket details */}
+                {/* Lead details */}
                 <div className="flex items-center justify-between border-b pb-4">
                   <div>
                     <p className="font-semibold text-gray-900">
-                      {selectedPaket.name}
+                      {leadsCount} Leads pro Monat
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedPaket.leads_pro_monat} Leads / Monat &middot;{" "}
-                      {selectedPaket.mindestlaufzeit_monate} Monate Laufzeit
+                      {formatPreis(pricing.preisProLead)} pro Lead &middot;{" "}
+                      {MINDESTLAUFZEIT} Monate Laufzeit
                     </p>
                   </div>
                   <p className="font-semibold text-gray-900">
-                    {formatEuro(selectedPaket.gesamtpreis_cents)} / Monat
+                    {formatPreis(
+                      calcGesamtpreis(leadsCount, false).monatspreis
+                    )}{" "}
+                    / Monat
                   </p>
                 </div>
 
@@ -622,29 +692,48 @@ export default function OnboardingPage() {
                   <div>
                     <p className="font-semibold text-gray-900">Setter-Addon</p>
                     <p className="text-sm text-muted-foreground">
-                      {hatSetter
-                        ? "Telefonische Vorqualifikation aktiv"
-                        : "Nicht ausgewählt"}
+                      {setterTyp === "keiner"
+                        ? "Nicht ausgew\u00e4hlt"
+                        : setterTyp === "pool"
+                        ? "LeadSolution Setter"
+                        : "Eigener Setter"}
                     </p>
                   </div>
                   <p className="font-semibold text-gray-900">
                     {hatSetter
-                      ? `+${formatEuro(
-                          selectedPaket.setter_aufpreis_cents *
-                            selectedPaket.leads_pro_monat
-                        )} / Monat`
-                      : "---"}
+                      ? `+${formatPreis(pricing.setterProLead * leadsCount)} / Monat`
+                      : "\u2014"}
                   </p>
                 </div>
+
+                {/* Savings */}
+                {pricing.ersparnis > 0 && (
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <div>
+                      <p className="font-semibold text-green-600">
+                        Ihre Ersparnis
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        gegen\u00fcber dem Einzelpreis von{" "}
+                        {formatPreis(5900)} pro Lead
+                      </p>
+                    </div>
+                    <p className="font-semibold text-green-600">
+                      -{formatPreis(pricing.ersparnis)} / Monat
+                    </p>
+                  </div>
+                )}
 
                 {/* Total */}
                 <div className="flex items-center justify-between pt-2">
                   <p className="text-lg font-bold text-gray-900">Gesamtpreis</p>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-[#2563EB]">
-                      {formatEuro(gesamtpreisWithSetter(selectedPaket))}
+                      {formatPreis(pricing.monatspreis)}
                     </p>
-                    <p className="text-sm text-muted-foreground">pro Monat inkl. MwSt.</p>
+                    <p className="text-sm text-muted-foreground">
+                      pro Monat inkl. MwSt.
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -657,10 +746,9 @@ export default function OnboardingPage() {
                 className="w-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
                 disabled={submitting}
                 onClick={() => {
-                  // Stripe checkout — placeholder for now
                   alert(
                     "Stripe-Checkout ist noch nicht konfiguriert. Nutzen Sie den Demo-Modus."
-                  );
+                  )
                 }}
               >
                 <CreditCard className="mr-2 h-4 w-4" />
@@ -697,7 +785,7 @@ export default function OnboardingPage() {
             <div className="flex justify-start pt-2">
               <Button variant="ghost" onClick={() => setStep(3)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Zurück
+                Zur\u00fcck
               </Button>
             </div>
           </div>
@@ -716,31 +804,33 @@ export default function OnboardingPage() {
             Willkommen bei LeadSolution!
           </h2>
           <p className="mt-3 max-w-md text-muted-foreground">
-            Ihr Paket wurde erfolgreich aktiviert. Sie können jetzt Ihr Dashboard
-            nutzen und Ihre ersten Leads empfangen.
+            Ihr Paket wurde erfolgreich aktiviert. Sie k\u00f6nnen jetzt Ihr
+            Dashboard nutzen und Ihre ersten Leads empfangen.
           </p>
 
-          {selectedPaket && (
-            <Card className="mt-8 w-full max-w-sm">
-              <CardContent className="p-6 text-left">
-                <h3 className="font-semibold text-gray-900">{selectedPaket.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedPaket.leads_pro_monat} Leads / Monat
-                  {hatSetter ? " + Setter" : ""}
-                </p>
-                <p className="mt-2 text-lg font-bold text-[#2563EB]">
-                  {formatEuro(gesamtpreisWithSetter(selectedPaket))} / Monat
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card className="mt-8 w-full max-w-sm">
+            <CardContent className="p-6 text-left">
+              <h3 className="font-semibold text-gray-900">
+                {leadsCount} Leads / Monat
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatPreis(pricing.preisProLead)} pro Lead
+                {hatSetter
+                  ? ` + ${formatEuro(SETTER_AUFPREIS * 100)} Setter`
+                  : ""}
+              </p>
+              <p className="mt-2 text-lg font-bold text-[#2563EB]">
+                {formatPreis(pricing.monatspreis)} / Monat
+              </p>
+            </CardContent>
+          </Card>
 
           <Button
             size="lg"
             className="mt-8 bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
             onClick={() => {
-              router.push("/berater");
-              router.refresh();
+              router.push("/berater")
+              router.refresh()
             }}
           >
             Zum Dashboard
@@ -749,5 +839,5 @@ export default function OnboardingPage() {
         </div>
       )}
     </>
-  );
+  )
 }

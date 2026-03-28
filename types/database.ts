@@ -159,6 +159,9 @@ export type Database = {
           availability_override: boolean | null
           availability_override_until: string | null
           do_not_disturb: boolean | null
+          leads_pro_monat: number
+          preis_pro_lead_cents: number
+          setter_typ: string | null
           created_at: string
           updated_at: string
         }
@@ -186,6 +189,9 @@ export type Database = {
           availability_override?: boolean | null
           availability_override_until?: string | null
           do_not_disturb?: boolean | null
+          leads_pro_monat?: number
+          preis_pro_lead_cents?: number
+          setter_typ?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -213,6 +219,9 @@ export type Database = {
           availability_override?: boolean | null
           availability_override_until?: string | null
           do_not_disturb?: boolean | null
+          leads_pro_monat?: number
+          preis_pro_lead_cents?: number
+          setter_typ?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -284,6 +293,7 @@ export type Database = {
           queue_status: string | null
           lead_ready_at: string | null
           holding_reason: string | null
+          max_kontaktversuche: number
           created_at: string
           updated_at: string
         }
@@ -330,6 +340,7 @@ export type Database = {
           queue_status?: string | null
           lead_ready_at?: string | null
           holding_reason?: string | null
+          max_kontaktversuche?: number
           created_at?: string
           updated_at?: string
         }
@@ -376,6 +387,7 @@ export type Database = {
           queue_status?: string | null
           lead_ready_at?: string | null
           holding_reason?: string | null
+          max_kontaktversuche?: number
           created_at?: string
           updated_at?: string
         }
@@ -673,6 +685,8 @@ export type Database = {
           betrag_cents: number
           leads_gutgeschrieben: number
           paket_name: string | null
+          preis_pro_lead_cents: number | null
+          hat_setter: boolean
           created_at: string
         }
         Insert: {
@@ -684,6 +698,8 @@ export type Database = {
           betrag_cents: number
           leads_gutgeschrieben?: number
           paket_name?: string | null
+          preis_pro_lead_cents?: number | null
+          hat_setter?: boolean
           created_at?: string
         }
         Update: {
@@ -695,6 +711,8 @@ export type Database = {
           betrag_cents?: number
           leads_gutgeschrieben?: number
           paket_name?: string | null
+          preis_pro_lead_cents?: number | null
+          hat_setter?: boolean
           created_at?: string
         }
         Relationships: [
@@ -821,6 +839,86 @@ export type Database = {
           {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_config: {
+        Row: {
+          id: string
+          key: string
+          value: number
+          label: string | null
+          description: string | null
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: number
+          label?: string | null
+          description?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: number
+          label?: string | null
+          description?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      setter_abrechnungen: {
+        Row: {
+          id: string
+          setter_id: string
+          monat: string
+          leads_bearbeitet: number
+          verguetung_pro_lead_cents: number
+          gesamt_cents: number
+          ausgezahlt: boolean
+          ausgezahlt_am: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          setter_id: string
+          monat: string
+          leads_bearbeitet?: number
+          verguetung_pro_lead_cents?: number
+          ausgezahlt?: boolean
+          ausgezahlt_am?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          setter_id?: string
+          monat?: string
+          leads_bearbeitet?: number
+          verguetung_pro_lead_cents?: number
+          ausgezahlt?: boolean
+          ausgezahlt_am?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setter_abrechnungen_setter_id_fkey"
+            columns: ["setter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
