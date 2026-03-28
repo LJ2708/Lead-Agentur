@@ -20,6 +20,7 @@ import { Search, X, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ExportButton } from "@/components/dashboard/ExportButton"
+import { ImportLeadsDialog } from "@/components/dashboard/ImportLeadsDialog"
 import type { Database } from "@/types/database"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -158,6 +159,7 @@ export default function AdminLeadsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ImportLeadsDialog onImported={fetchLeads} />
           <ExportButton
             filters={{
               status: statusFilter,

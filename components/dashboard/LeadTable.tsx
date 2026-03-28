@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge"
+import { BulkActions } from "@/components/dashboard/BulkActions"
 import { formatDate } from "@/lib/utils"
 import { ArrowUpDown, UserPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -48,6 +49,7 @@ interface LeadTableProps {
   leads: Lead[]
   showBerater?: boolean
   showSetter?: boolean
+  isAdmin?: boolean
   onLeadUpdated?: () => void
 }
 
@@ -58,12 +60,19 @@ export function LeadTable({
   leads,
   showBerater = false,
   showSetter = false,
+  isAdmin = false,
   onLeadUpdated,
 }: LeadTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("created_at")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
   const [beraterList, setBeraterList] = useState<BeraterOption[]>([])
   const [assigningLeadId, setAssigningLeadId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  // Clear selection when leads change
+  useEffect(() => {
+    setSelectedIds([])
+  }, [leads])
 
   useEffect(() => {
     if (!showBerater) return
@@ -140,6 +149,23 @@ export function LeadTable({
     return sortDir === "asc" ? cmp : -cmp
   })
 
+  const allSelected = sorted.length > 0 && selectedIds.length === sorted.length
+  const someSelected = selectedIds.length > 0 && !allSelected
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(sorted.map((l) => l.id))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
   const sourceLabel: Record<string, string> = {
     meta_lead_ad: "Meta Ad",
     landingpage: "Landingpage",
@@ -169,10 +195,25 @@ export function LeadTable({
     )
   }
 
+  const colSpanCount =
+    (showBerater && showSetter ? 9 : showBerater || showSetter ? 8 : 7)
+
   return (
+    <div>
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-10">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = someSelected
+              }}
+              onChange={toggleSelectAll}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+          </TableHead>
           <TableHead>
             <SortHeader label="Name" sortKeyName="name" />
           </TableHead>
@@ -197,13 +238,7 @@ export function LeadTable({
         {sorted.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={
-                showBerater && showSetter
-                  ? 8
-                  : showBerater || showSetter
-                    ? 7
-                    : 6
-              }
+              colSpan={colSpanCount}
               className="h-24 text-center text-muted-foreground"
             >
               Keine Leads gefunden.
@@ -211,7 +246,18 @@ export function LeadTable({
           </TableRow>
         ) : (
           sorted.map((lead) => (
-            <TableRow key={lead.id} className="cursor-default">
+            <TableRow
+              key={lead.id}
+              className={cn("cursor-default", selectedIds.includes(lead.id) && "bg-muted/50")}
+            >
+              <TableCell>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(lead.id)}
+                  onChange={() => toggleSelect(lead.id)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </TableCell>
               <TableCell className="font-medium">
                 {lead.vorname} {lead.nachname}
               </TableCell>
@@ -267,5 +313,16 @@ export function LeadTable({
         )}
       </TableBody>
     </Table>
+
+    <BulkActions
+      selectedIds={selectedIds}
+      isAdmin={isAdmin}
+      onAction={() => {
+        setSelectedIds([])
+        onLeadUpdated?.()
+      }}
+      onClear={() => setSelectedIds([])}
+    />
+    </div>
   )
 }

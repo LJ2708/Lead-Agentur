@@ -925,6 +925,38 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          id: string
+          key: string
+          value: string
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: string
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: string
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           id: string

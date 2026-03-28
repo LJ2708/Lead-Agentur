@@ -33,6 +33,10 @@ import {
   Trophy,
   Headphones,
   PieChart,
+  ScrollText,
+  Calendar,
+  Globe,
+  Server,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -57,6 +61,10 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
     { label: "Analytics", href: "/admin/analytics", icon: PieChart },
     { label: "Performance", href: "/admin/performance", icon: Trophy },
+    { label: "Audit Log", href: "/admin/audit", icon: ScrollText },
+    { label: "Webhooks", href: "/admin/webhooks", icon: Globe },
+    { label: "System", href: "/admin/system", icon: Server },
+    { label: "Einstellungen", href: "/admin/settings", icon: Settings },
   ],
   teamleiter: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -71,6 +79,7 @@ const navItemsByRole: Record<Role, NavItem[]> = {
   berater: [
     { label: "Overview", href: "/berater", icon: LayoutDashboard },
     { label: "Meine Leads", href: "/berater/leads", icon: FileText },
+    { label: "Kalender", href: "/berater/kalender", icon: Calendar },
     { label: "Nachkauf", href: "/berater/nachkauf", icon: ShoppingCart },
     { label: "Einstellungen", href: "/berater/settings", icon: Settings },
   ],

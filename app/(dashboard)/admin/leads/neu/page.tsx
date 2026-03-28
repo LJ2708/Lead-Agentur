@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +19,8 @@ import {
 import { toast } from "sonner"
 import { Loader2, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { checkDuplicate, type DuplicateResult } from "@/lib/leads/dedup"
+import { DuplicateWarning } from "@/components/dashboard/DuplicateWarning"
 
 interface LeadFormData {
   vorname: string
@@ -43,6 +45,8 @@ export default function AdminLeadNeuPage() {
 
   const [saving, setSaving] = useState(false)
   const [utmOpen, setUtmOpen] = useState(false)
+  const [duplicateResult, setDuplicateResult] = useState<DuplicateResult | null>(null)
+  const dedupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [form, setForm] = useState<LeadFormData>({
     vorname: "",
     nachname: "",
@@ -60,11 +64,39 @@ export default function AdminLeadNeuPage() {
     sofort_verteilen: false,
   })
 
+  const runDedupCheck = useCallback(
+    (updated: LeadFormData) => {
+      if (dedupTimerRef.current) clearTimeout(dedupTimerRef.current)
+      dedupTimerRef.current = setTimeout(async () => {
+        const email = updated.email.trim()
+        const telefon = updated.telefon.trim()
+        if (!email && !telefon) {
+          setDuplicateResult(null)
+          return
+        }
+        const result = await checkDuplicate({
+          email: email || undefined,
+          telefon: telefon || undefined,
+          vorname: updated.vorname.trim() || undefined,
+          nachname: updated.nachname.trim() || undefined,
+        })
+        setDuplicateResult(result.isDuplicate ? result : null)
+      }, 500)
+    },
+    []
+  )
+
   function updateField<K extends keyof LeadFormData>(
     key: K,
     value: LeadFormData[K]
   ) {
-    setForm((prev) => ({ ...prev, [key]: value }))
+    setForm((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === "email" || key === "telefon") {
+        runDedupCheck(next)
+      }
+      return next
+    })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -158,6 +190,13 @@ export default function AdminLeadNeuPage() {
           </p>
         </div>
       </div>
+
+      {duplicateResult && duplicateResult.isDuplicate && (
+        <DuplicateWarning
+          duplicate={duplicateResult}
+          onIgnore={() => setDuplicateResult(null)}
+        />
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
