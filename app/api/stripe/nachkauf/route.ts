@@ -4,14 +4,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe/client'
 
 // ---------------------------------------------------------------------------
-// POST - Create Stripe Checkout Session for one-time lead top-up purchase
-// Body: { nachkauf_paket_id, hat_setter?, berater_id? }
+// POST - Create Stripe Checkout Session for one-time lead top-up (dynamic)
+// Body: { berater_id, anzahl_leads }
 // ---------------------------------------------------------------------------
 
 interface NachkaufBody {
-  nachkauf_paket_id: string
-  hat_setter?: boolean
   berater_id?: string
+  anzahl_leads: number
 }
 
 export async function POST(request: NextRequest) {
@@ -33,35 +32,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  if (!body.nachkauf_paket_id) {
-    return NextResponse.json({ error: 'Missing nachkauf_paket_id' }, { status: 400 })
+  const { anzahl_leads } = body
+
+  if (!anzahl_leads || typeof anzahl_leads !== 'number' || anzahl_leads < 1) {
+    return NextResponse.json({ error: 'Missing or invalid anzahl_leads' }, { status: 400 })
   }
 
   const admin = createAdminClient()
 
-  // --- Look up nachkauf package -------------------------------------------
-  const { data: paket, error: paketError } = await admin
-    .from('nachkauf_pakete')
-    .select('*')
-    .eq('id', body.nachkauf_paket_id)
-    .eq('is_active', true)
-    .single()
-
-  if (paketError || !paket) {
-    return NextResponse.json({ error: 'Nachkauf package not found or inactive' }, { status: 404 })
-  }
-
-  const priceId = body.hat_setter ? paket.stripe_price_id_mit_setter : paket.stripe_price_id
-
-  if (!priceId) {
-    return NextResponse.json(
-      { error: 'Package has no Stripe price configured' },
-      { status: 422 }
-    )
-  }
-
-  // --- Check active subscription requirement ------------------------------
-  // Resolve berater_id first to check subscription status
+  // --- Resolve berater_id -------------------------------------------------
   let beraterId = body.berater_id
 
   if (!beraterId) {
@@ -77,9 +56,10 @@ export async function POST(request: NextRequest) {
     beraterId = berater.id
   }
 
+  // --- Look up berater to get their current preis_pro_lead_cents ----------
   const { data: beraterRecord } = await admin
     .from('berater')
-    .select('id, stripe_customer_id, subscription_status')
+    .select('id, stripe_customer_id, preis_pro_lead_cents, subscription_status')
     .eq('id', beraterId)
     .single()
 
@@ -116,25 +96,30 @@ export async function POST(request: NextRequest) {
 
   // --- Create Checkout Session (payment mode) -----------------------------
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const preisProLeadCents = beraterRecord.preis_pro_lead_cents
 
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
     mode: 'payment',
     line_items: [
       {
-        price: priceId,
-        quantity: 1,
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: `LeadSolution Nachkauf \u2014 ${anzahl_leads} Leads`,
+          },
+          unit_amount: preisProLeadCents,
+        },
+        quantity: anzahl_leads,
       },
     ],
     metadata: {
       berater_id: beraterId,
-      nachkauf_paket_id: paket.id,
-      anzahl_leads: String(paket.anzahl_leads),
-      hat_setter: body.hat_setter ? 'true' : 'false',
-      profile_id: profileData.id,
+      anzahl_leads: String(anzahl_leads),
+      typ: 'nachkauf',
     },
-    success_url: `${appUrl}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&nachkauf=true&success=true`,
-    cancel_url: `${appUrl}/dashboard/billing?canceled=true`,
+    success_url: `${appUrl}/berater?nachkauf=success`,
+    cancel_url: `${appUrl}/berater?nachkauf=cancel`,
     allow_promotion_codes: true,
   })
 

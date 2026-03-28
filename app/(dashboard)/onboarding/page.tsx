@@ -745,14 +745,82 @@ export default function OnboardingPage() {
                 size="lg"
                 className="w-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
                 disabled={submitting}
-                onClick={() => {
-                  alert(
-                    "Stripe-Checkout ist noch nicht konfiguriert. Nutzen Sie den Demo-Modus."
-                  )
+                onClick={async () => {
+                  setSubmitting(true)
+                  setError(null)
+
+                  try {
+                    // Ensure we have a berater record
+                    const supabase = createClient()
+                    const {
+                      data: { user: currentUser },
+                    } = await supabase.auth.getUser()
+
+                    if (!currentUser) {
+                      setError("Sie sind nicht angemeldet.")
+                      setSubmitting(false)
+                      return
+                    }
+
+                    // Upsert berater so the checkout route can find it
+                    const preisProLeadCents = calcPreisProLead(leadsCount) * 100
+                    await supabase.from("berater").upsert(
+                      {
+                        profile_id: currentUser.id,
+                        status: "pending" as const,
+                        leads_pro_monat: leadsCount,
+                        preis_pro_lead_cents: preisProLeadCents,
+                        setter_typ: setterTyp,
+                        hat_setter: hatSetter,
+                      },
+                      { onConflict: "profile_id" }
+                    )
+
+                    const res = await fetch("/api/stripe/checkout", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        leads_pro_monat: leadsCount,
+                        hat_setter: setterTyp === "pool",
+                      }),
+                    })
+
+                    const data = await res.json()
+
+                    if (!res.ok) {
+                      setError(
+                        data.error ||
+                          "Stripe noch nicht konfiguriert. Bitte nutzen Sie den Demo-Modus."
+                      )
+                      setSubmitting(false)
+                      return
+                    }
+
+                    if (data.url) {
+                      window.location.href = data.url
+                    } else {
+                      setError("Stripe noch nicht konfiguriert")
+                      setSubmitting(false)
+                    }
+                  } catch {
+                    setError(
+                      "Stripe noch nicht konfiguriert. Bitte nutzen Sie den Demo-Modus."
+                    )
+                    setSubmitting(false)
+                  }
                 }}
               >
-                <CreditCard className="mr-2 h-4 w-4" />
-                Weiter zur Zahlung
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Wird weitergeleitet...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Weiter zur Zahlung
+                  </>
+                )}
               </Button>
 
               <div className="relative flex items-center justify-center">

@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
         break
 
       default:
-        // Unhandled event type - log and ignore
         console.log(`[stripe-webhook] Unhandled event type: ${event.type}`)
     }
   } catch (err) {
@@ -79,22 +78,20 @@ async function handleCheckoutCompleted(
   }
 
   if (session.mode === 'subscription') {
-    // --- Subscription checkout completed -----------------------------------
-    const paketId = metadata.paket_id
+    // --- Subscription checkout completed (dynamic pricing) -----------------
+    const leadsProMonat = parseInt(metadata.leads_pro_monat ?? '0', 10)
+    const preisProLeadCents = parseInt(metadata.preis_pro_lead_cents ?? '0', 10)
     const hatSetter = metadata.hat_setter === 'true'
 
-    // Get package to know kontingent
-    const { data: paket } = await supabase
-      .from('lead_pakete')
-      .select('leads_pro_monat')
-      .eq('id', paketId)
-      .single()
-
-    const kontingent = paket?.leads_pro_monat ?? 0
     const subscriptionId =
       typeof session.subscription === 'string'
         ? session.subscription
         : (session.subscription as Stripe.Subscription | null)?.id ?? null
+
+    const customerId =
+      typeof session.customer === 'string'
+        ? session.customer
+        : (session.customer as Stripe.Customer | null)?.id ?? null
 
     // Activate berater with subscription info
     await supabase
@@ -103,10 +100,13 @@ async function handleCheckoutCompleted(
         status: 'aktiv',
         subscription_status: 'active',
         stripe_subscription_id: subscriptionId,
-        leads_kontingent: kontingent,
+        stripe_customer_id: customerId,
+        leads_kontingent: leadsProMonat,
         leads_geliefert: 0,
+        leads_pro_monat: leadsProMonat,
+        preis_pro_lead_cents: preisProLeadCents,
         hat_setter: hatSetter,
-        lead_paket_id: paketId || null,
+        setter_typ: hatSetter ? 'pool' : 'keiner',
         abo_start: new Date().toISOString(),
       })
       .eq('id', beraterId)
@@ -114,13 +114,18 @@ async function handleCheckoutCompleted(
     // Create zahlungen record
     await supabase.from('zahlungen').insert({
       berater_id: beraterId,
-      stripe_payment_intent_id: typeof session.payment_intent === 'string'
-        ? session.payment_intent
-        : null,
+      stripe_payment_intent_id:
+        typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : null,
       betrag_cents: session.amount_total ?? 0,
       typ: 'subscription',
-      paket_name: paket ? `Abo${hatSetter ? ' (mit Setter)' : ''}` : null,
-      leads_gutgeschrieben: kontingent,
+      paket_name: hatSetter
+        ? `${leadsProMonat} Leads/Monat (mit Setter)`
+        : `${leadsProMonat} Leads/Monat`,
+      leads_gutgeschrieben: leadsProMonat,
+      preis_pro_lead_cents: preisProLeadCents,
+      hat_setter: hatSetter,
     })
   } else if (session.mode === 'payment') {
     // --- One-time nachkauf payment completed -------------------------------
@@ -129,7 +134,7 @@ async function handleCheckoutCompleted(
     // Add leads to berater nachkauf_leads_offen
     const { data: berater } = await supabase
       .from('berater')
-      .select('nachkauf_leads_offen')
+      .select('nachkauf_leads_offen, preis_pro_lead_cents')
       .eq('id', beraterId)
       .single()
 
@@ -145,39 +150,23 @@ async function handleCheckoutCompleted(
     // Create zahlungen record
     await supabase.from('zahlungen').insert({
       berater_id: beraterId,
-      stripe_payment_intent_id: typeof session.payment_intent === 'string'
-        ? session.payment_intent
-        : null,
+      stripe_payment_intent_id:
+        typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : null,
       betrag_cents: session.amount_total ?? 0,
       typ: 'nachkauf',
       leads_gutgeschrieben: anzahlLeads,
       paket_name: `Nachkauf: ${anzahlLeads} Leads`,
+      preis_pro_lead_cents: berater?.preis_pro_lead_cents ?? 0,
+      hat_setter: false,
     })
-
-    // Create activity on a recent lead for this berater (informational)
-    const { data: recentLead } = await supabase
-      .from('leads')
-      .select('id')
-      .eq('berater_id', beraterId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (recentLead) {
-      await supabase.from('lead_activities').insert({
-        lead_id: recentLead.id,
-        type: 'nachkauf',
-        title: 'Nachkauf',
-        description: `Nachkauf: ${anzahlLeads} Leads hinzugefuegt`,
-      })
-    }
   }
 }
 
 // ---------------------------------------------------------------------------
 // Helpers for new Stripe API version (2026-03-25.dahlia)
 // subscription is now under parent.subscription_details.subscription
-// payment_intent is no longer a top-level Invoice property
 // ---------------------------------------------------------------------------
 
 function getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
@@ -194,9 +183,9 @@ async function handleInvoicePaid(
   supabase: ReturnType<typeof createAdminClient>,
   invoice: Stripe.Invoice
 ) {
-  // Only process subscription invoices (not the first one - that's handled by checkout)
+  // Only process subscription invoices (not the first one - handled by checkout)
   if (invoice.billing_reason === 'subscription_create') {
-    return // skip, already handled by checkout.session.completed
+    return
   }
 
   const subscriptionId = getSubscriptionIdFromInvoice(invoice)
@@ -205,7 +194,7 @@ async function handleInvoicePaid(
   // Find the berater by stripe_subscription_id
   const { data: berater } = await supabase
     .from('berater')
-    .select('id, leads_kontingent, lead_paket_id')
+    .select('id, leads_kontingent, leads_pro_monat')
     .eq('stripe_subscription_id', subscriptionId)
     .single()
 
@@ -214,23 +203,8 @@ async function handleInvoicePaid(
     return
   }
 
-  // Fetch subscription to get metadata (paket_id)
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-  const paketId = subscription.metadata?.paket_id ?? berater.lead_paket_id
-
-  // Get kontingent from package
-  let kontingent = berater.leads_kontingent // default: keep current
-  if (paketId) {
-    const { data: paket } = await supabase
-      .from('lead_pakete')
-      .select('leads_pro_monat')
-      .eq('id', paketId)
-      .single()
-
-    if (paket) {
-      kontingent = paket.leads_pro_monat
-    }
-  }
+  // Use leads_pro_monat as the kontingent for renewal
+  const kontingent = berater.leads_pro_monat ?? berater.leads_kontingent
 
   // Reset leads_geliefert for the new period
   await supabase
@@ -250,7 +224,7 @@ async function handleInvoicePaid(
     betrag_cents: invoice.amount_paid ?? 0,
     typ: 'subscription_renewal',
     leads_gutgeschrieben: kontingent,
-    paket_name: 'Abo-Verlaengerung',
+    paket_name: 'Abo-Verl\u00e4ngerung',
   })
 }
 
@@ -279,7 +253,6 @@ async function handleSubscriptionDeleted(
   supabase: ReturnType<typeof createAdminClient>,
   subscription: Stripe.Subscription
 ) {
-  // Find berater by stripe_subscription_id
   const { data: berater } = await supabase
     .from('berater')
     .select('id')
@@ -293,7 +266,6 @@ async function handleSubscriptionDeleted(
     return
   }
 
-  // Set berater subscription to canceled and deactivate
   await supabase
     .from('berater')
     .update({ subscription_status: 'canceled', status: 'inaktiv' })
