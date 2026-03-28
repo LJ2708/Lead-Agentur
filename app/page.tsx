@@ -1,12 +1,15 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import LandingPage from "@/components/landing/LandingPage"
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/login");
+    return <LandingPage />
   }
 
   // User is logged in — redirect to dashboard
@@ -14,17 +17,17 @@ export default async function Home() {
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .single();
+    .single()
 
   switch (profile?.role) {
     case "admin":
     case "teamleiter":
-      redirect("/admin");
+      redirect("/admin")
     case "berater":
-      redirect("/berater");
+      redirect("/berater")
     case "setter":
-      redirect("/setter");
+      redirect("/setter")
     default:
-      redirect("/login");
+      redirect("/login")
   }
 }
