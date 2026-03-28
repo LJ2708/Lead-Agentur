@@ -48,6 +48,7 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Leads", href: "/admin/leads", icon: FileText },
     { label: "Berater", href: "/admin/berater", icon: UserCheck },
+    { label: "Setter", href: "/admin/setter", icon: Headphones },
     { label: "Pricing", href: "/admin/pricing", icon: SlidersHorizontal },
     { label: "Nachkauf", href: "/admin/nachkauf", icon: ShoppingCart },
     { label: "Budget", href: "/admin/budget", icon: Wallet },

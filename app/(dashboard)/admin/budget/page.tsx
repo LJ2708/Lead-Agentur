@@ -4,6 +4,7 @@ import {
   type BudgetData,
 } from "@/components/dashboard/BudgetDashboard"
 import { BudgetConfigEditor } from "./config-editor"
+import { BudgetChart } from "./budget-chart"
 
 export default async function AdminBudgetPage() {
   let budget: BudgetData
@@ -18,6 +19,7 @@ export default async function AdminBudgetPage() {
       kosten: { meta: 0, agentur: 0, setter: 0, gesamt: 0 },
       deckungsbeitrag: 0,
       marge: 0,
+      setterMarge: 0,
       benoetigtesMETABudget: 0,
       lieferstatus: { geliefert: 0, offen: 0, prozent: 0 },
     }
@@ -35,6 +37,8 @@ export default async function AdminBudgetPage() {
       </div>
 
       <BudgetDashboard budget={budget} />
+
+      <BudgetChart budget={budget} />
 
       <BudgetConfigEditor />
     </div>

@@ -18,6 +18,7 @@ import { OutcomeSelector } from "@/components/dashboard/OutcomeSelector";
 import { SlaTimer } from "@/components/dashboard/SlaTimer";
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge";
 import { LeadActivityTimeline } from "@/components/dashboard/LeadActivityTimeline";
+import { KontaktversuchTracker } from "@/components/dashboard/KontaktversuchTracker";
 import {
   Collapsible,
   CollapsibleContent,
@@ -43,6 +44,7 @@ import {
   ChevronRight,
   Sparkles,
   Loader2,
+  Forward,
 } from "lucide-react";
 import type { Tables } from "@/types/database";
 
@@ -137,6 +139,7 @@ export default function SetterWorkListPage() {
   const [outcomeLeadId, setOutcomeLeadId] = useState<string | null>(null);
   const [statusChangingId, setStatusChangingId] = useState<string | null>(null);
   const [statusLoadingId, setStatusLoadingId] = useState<string | null>(null);
+  const [weitergebenLeadId, setWeitergebenLeadId] = useState<string | null>(null);
 
   const fetchLeads = useCallback(async () => {
     setIsLoading(true);
@@ -295,6 +298,12 @@ export default function SetterWorkListPage() {
     setStatusChangingId(null);
     setStatusLoadingId(null);
     await fetchLeads();
+  }
+
+  async function handleWeitergeben(leadId: string, targetStatus: "qualifiziert" | "nicht_erreicht") {
+    setWeitergebenLeadId(leadId);
+    await handleStatusChange(leadId, targetStatus, "Maximum Kontaktversuche erreicht - weitergegeben");
+    setWeitergebenLeadId(null);
   }
 
   return (
@@ -464,6 +473,45 @@ export default function SetterWorkListPage() {
                           | "breached"
                       }
                     />
+                  )}
+                </div>
+
+                {/* Kontaktversuch Tracker */}
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <KontaktversuchTracker
+                    leadId={lead.id}
+                    kontaktversuche={lead.kontaktversuche}
+                    maxKontaktversuche={lead.max_kontaktversuche ?? 5}
+                    onAttemptLogged={() => fetchLeads()}
+                  />
+                  {lead.kontaktversuche >= (lead.max_kontaktversuche ?? 5) && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={weitergebenLeadId === lead.id}
+                        onClick={() =>
+                          handleWeitergeben(lead.id, "qualifiziert")
+                        }
+                      >
+                        {weitergebenLeadId === lead.id ? (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        ) : (
+                          <Forward className="mr-1 h-3 w-3" />
+                        )}
+                        Qualifiziert
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={weitergebenLeadId === lead.id}
+                        onClick={() =>
+                          handleWeitergeben(lead.id, "nicht_erreicht")
+                        }
+                      >
+                        Nicht erreicht
+                      </Button>
+                    </div>
                   )}
                 </div>
 

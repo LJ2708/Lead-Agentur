@@ -33,6 +33,7 @@ export interface BudgetData {
   }
   deckungsbeitrag: number
   marge: number
+  setterMarge?: number
   benoetigtesMETABudget: number
   lieferstatus: {
     geliefert: number
@@ -183,11 +184,26 @@ export function BudgetDashboard({ budget }: BudgetDashboardProps) {
           </CardContent>
         </Card>
 
+        {/* SETTER-MARGE */}
+        {budget.setterMarge !== undefined && budget.setterMarge !== 0 && (
+          <Card>
+            <CardContent className="pt-0">
+              <p className="text-sm text-muted-foreground">Setter-Marge</p>
+              <p className="text-2xl font-bold">
+                {formatEuro(budget.setterMarge)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Aufpreis abzgl. Vergütung pro Setter-Lead
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* BENOETIGTES META-BUDGET */}
         <Card>
           <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground">
-              Benoetigtes META-Budget
+              Benötigtes META-Budget
             </p>
             <p className="text-2xl font-bold">
               {formatEuro(budget.benoetigtesMETABudget)}

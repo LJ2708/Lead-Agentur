@@ -20,6 +20,7 @@ import { OutcomeSelector } from "@/components/dashboard/OutcomeSelector";
 import { SlaTimer } from "@/components/dashboard/SlaTimer";
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge";
 import { LeadActivityTimeline } from "@/components/dashboard/LeadActivityTimeline";
+import { KontaktversuchTracker } from "@/components/dashboard/KontaktversuchTracker";
 import { calculateLeadScore } from "@/lib/scoring/lead-score";
 import {
   getValidTransitions,
@@ -336,6 +337,64 @@ export default function SetterLeadDetailPage() {
             onCallComplete={() => setShowOutcome(true)}
             onActionComplete={() => fetchData()}
           />
+        </CardContent>
+      </Card>
+
+      {/* Kontaktversuch Tracker */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Kontaktversuche</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <KontaktversuchTracker
+            leadId={lead.id}
+            kontaktversuche={lead.kontaktversuche}
+            maxKontaktversuche={lead.max_kontaktversuche ?? 5}
+            onAttemptLogged={() => fetchData()}
+          />
+          {lead.kontaktversuche >= (lead.max_kontaktversuche ?? 5) && (
+            <div className="mt-3 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleStatusChange("qualifiziert")}
+                disabled={statusLoading}
+              >
+                Als qualifiziert weitergeben
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleStatusChange("nicht_erreicht")}
+                disabled={statusLoading}
+              >
+                Nicht erreicht
+              </Button>
+            </div>
+          )}
+          {/* Contact attempt history */}
+          {activities.filter((a) => a.type === "anruf").length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                Kontaktversuch-Verlauf
+              </p>
+              <div className="space-y-1">
+                {activities
+                  .filter((a) => a.type === "anruf")
+                  .map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex items-center justify-between rounded-md bg-muted/30 px-3 py-1.5 text-xs"
+                    >
+                      <span>{a.description ?? a.title}</span>
+                      <span className="text-muted-foreground">
+                        {new Date(a.created_at).toLocaleString("de-DE")}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

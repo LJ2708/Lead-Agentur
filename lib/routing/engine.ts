@@ -263,8 +263,94 @@ async function assignLead(
       : `Lead an Berater zugewiesen (Pacing: ${candidate.pacing.status}, ${candidate.pacing.prozent}%)`,
   })
 
+  // After assigning to berater, check if berater uses pool setter
+  await maybeAssignPoolSetter(leadId, candidate.id)
+
   return {
     beraterId: candidate.id,
     isNachkauf,
   }
+}
+
+/**
+ * If the berater has setter_typ='pool', assign a setter from the pool.
+ * Uses round-robin: picks the setter with fewest active leads.
+ */
+async function maybeAssignPoolSetter(
+  leadId: string,
+  beraterId: string
+): Promise<void> {
+  // Check if berater uses pool setter
+  const { data: berater } = await supabaseAdmin
+    .from('berater')
+    .select('setter_typ')
+    .eq('id', beraterId)
+    .single()
+
+  if (!berater || berater.setter_typ !== 'pool') return
+
+  // Fetch max_kontaktversuche from pricing_config
+  let maxKontaktversuche = 5
+  const { data: configData } = await supabaseAdmin
+    .from('pricing_config')
+    .select('value')
+    .eq('key', 'max_kontaktversuche')
+    .single()
+
+  if (configData) {
+    maxKontaktversuche = configData.value
+  }
+
+  // Fetch all setter profiles
+  const { data: setterProfiles } = await supabaseAdmin
+    .from('profiles')
+    .select('id, full_name')
+    .eq('role', 'setter')
+
+  if (!setterProfiles || setterProfiles.length === 0) {
+    console.warn('[routing] No setter profiles found for pool assignment')
+    return
+  }
+
+  // Round-robin: pick setter with fewest active leads
+  let bestSetter: { id: string; full_name: string } | null = null
+  let minActiveLeads = Infinity
+
+  for (const setter of setterProfiles) {
+    const { count } = await supabaseAdmin
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('setter_id', setter.id)
+      .not('status', 'in', '("abschluss","verloren")')
+
+    const activeCount = count ?? 0
+    if (activeCount < minActiveLeads) {
+      minActiveLeads = activeCount
+      bestSetter = setter
+    }
+  }
+
+  if (!bestSetter) return
+
+  // Assign setter to lead
+  const { error: updateError } = await supabaseAdmin
+    .from('leads')
+    .update({
+      setter_id: bestSetter.id,
+      max_kontaktversuche: maxKontaktversuche,
+    })
+    .eq('id', leadId)
+
+  if (updateError) {
+    console.error(`[routing] Failed to assign setter to lead ${leadId}:`, updateError.message)
+    return
+  }
+
+  // Create activity
+  await supabaseAdmin.from('lead_activities').insert({
+    lead_id: leadId,
+    type: 'zuweisung',
+    title: 'Setter zugewiesen',
+    description: `Setter zugewiesen: ${bestSetter.full_name}`,
+  })
 }
