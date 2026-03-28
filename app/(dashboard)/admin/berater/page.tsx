@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatEuro } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
+import { InviteBeraterDialog } from "@/components/dashboard/InviteBeraterDialog"
 import type { Database } from "@/types/database"
 
 interface BeraterWithProfile {
@@ -107,13 +108,16 @@ export default function AdminBeraterPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Berater-Verwaltung
-        </h1>
-        <p className="text-muted-foreground">
-          Alle Berater und deren Kontingente verwalten.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Berater-Verwaltung
+          </h1>
+          <p className="text-muted-foreground">
+            Alle Berater und deren Kontingente verwalten.
+          </p>
+        </div>
+        <InviteBeraterDialog />
       </div>
 
       <Card>

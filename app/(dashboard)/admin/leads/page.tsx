@@ -19,6 +19,7 @@ import {
 import { Search, X, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
+import { ExportButton } from "@/components/dashboard/ExportButton"
 import type { Database } from "@/types/database"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -156,12 +157,21 @@ export default function AdminLeadsPage() {
             {totalCount} Leads insgesamt
           </p>
         </div>
-        <Link href="/admin/leads/neu">
-          <Button>
-            <Plus className="mr-1 h-4 w-4" />
-            Neuer Lead
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportButton
+            filters={{
+              status: statusFilter,
+              dateFrom: dateFrom,
+              dateTo: dateTo,
+            }}
+          />
+          <Link href="/admin/leads/neu">
+            <Button>
+              <Plus className="mr-1 h-4 w-4" />
+              Neuer Lead
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

@@ -60,18 +60,19 @@ export async function POST(request: NextRequest) {
   }
 
   // --- Send email ---------------------------------------------------------
-  const result = await sendEmail({
-    to: body.to,
-    subject: body.data.subject,
-    html: body.data.html,
-  })
+  const recipients = Array.isArray(body.to) ? body.to : [body.to]
+  let lastResult = false
 
-  if (result.error) {
+  for (const recipient of recipients) {
+    lastResult = await sendEmail(recipient, body.data.subject, body.data.html)
+  }
+
+  if (!lastResult && recipients.length === 1) {
     return NextResponse.json(
-      { error: 'Email send failed', details: result.error },
+      { error: 'Email send failed' },
       { status: 500 }
     )
   }
 
-  return NextResponse.json({ success: true, email_id: result.id })
+  return NextResponse.json({ success: true })
 }

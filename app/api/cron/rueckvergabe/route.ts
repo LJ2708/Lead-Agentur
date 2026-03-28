@@ -150,15 +150,13 @@ async function handleCron(request: NextRequest) {
           .maybeSingle()
 
         if (!existingAlert) {
-          await sendAdminAlertEmail({
-            subject: `Lead ${lead.vorname} ${lead.nachname} seit >5h unkontaktiert`,
-            nachricht: `Der Lead "${lead.vorname} ${lead.nachname}" (ID: ${lead.id}) ist seit ueber 5 Stunden zugewiesen aber wurde nicht kontaktiert.`,
-            details: {
-              lead_id: lead.id,
-              zugewiesen_am: lead.zugewiesen_am,
-              berater_id: lead.berater_id,
-            },
-          })
+          await sendAdminAlertEmail(
+            process.env.ADMIN_EMAIL ?? 'admin@leadsolution.de',
+            {
+              alertType: `Lead seit >5h unkontaktiert`,
+              message: `Der Lead "${lead.vorname} ${lead.nachname}" (ID: ${lead.id}) ist seit ueber 5 Stunden zugewiesen aber wurde nicht kontaktiert. Berater: ${lead.berater_id}`,
+            }
+          )
 
           await supabase.from('lead_activities').insert({
             lead_id: lead.id,
@@ -272,11 +270,9 @@ async function handleCron(request: NextRequest) {
               .single()
 
             if (beraterProfile) {
-              await sendReminderEmail({
-                beraterEmail: beraterProfile.email,
+              await sendReminderEmail(beraterProfile.email, {
                 beraterName: beraterProfile.full_name ?? 'Berater',
                 leadName: `${lead.vorname} ${lead.nachname}`,
-                erinnerungsTyp: 'Lead seit 30 Minuten unkontaktiert - bitte schnellstmoeglich anrufen!',
               })
             }
           }

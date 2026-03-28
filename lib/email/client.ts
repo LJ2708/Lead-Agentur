@@ -1,160 +1,255 @@
 import { Resend } from 'resend'
+import { emailLayout, emailButton } from './templates'
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error('Missing RESEND_API_KEY environment variable')
+let resend: Resend | null = null
+
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY)
+} else {
+  console.warn('[email] RESEND_API_KEY nicht gesetzt — E-Mails werden nicht versendet.')
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const FROM = process.env.EMAIL_FROM || 'LeadSolution <noreply@leadsolution.de>'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.leadsolution.de'
 
-const FROM_EMAIL = process.env.EMAIL_FROM ?? 'LeadSolution <noreply@leadsolution.de>'
+// ---------------------------------------------------------------------------
+// Generic send helper
+// ---------------------------------------------------------------------------
 
-interface SendEmailOptions {
-  to: string | string[]
-  subject: string
-  html: string
-}
+export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+  if (!resend) {
+    console.warn('[email] Kein RESEND_API_KEY — E-Mail nicht gesendet:', subject)
+    return false
+  }
 
-interface SendEmailResult {
-  id: string | null
-  error: string | null
-}
-
-/**
- * Generic email send helper.
- */
-export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<SendEmailResult> {
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: Array.isArray(to) ? to : [to],
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: [to],
       subject,
       html,
     })
 
     if (error) {
-      console.error('[email] Send failed:', error.message)
-      return { id: null, error: error.message }
+      console.error('[email] Fehler beim Senden:', error.message)
+      return false
     }
 
-    return { id: data?.id ?? null, error: null }
+    return true
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[email] Unexpected error:', message)
-    return { id: null, error: message }
+    const message = err instanceof Error ? err.message : 'Unbekannter Fehler'
+    console.error('[email] Unerwarteter Fehler:', message)
+    return false
   }
 }
 
-/**
- * Notify berater that a new lead was assigned.
- */
-export async function sendLeadZugewiesenEmail(params: {
-  beraterEmail: string
-  beraterName: string
-  leadName: string
-  leadTelefon: string
-  leadOrt: string
-  isNachkauf: boolean
-}): Promise<SendEmailResult> {
-  const { beraterEmail, beraterName, leadName, leadTelefon, leadOrt, isNachkauf } = params
+// ---------------------------------------------------------------------------
+// Template: Lead zugewiesen an Berater
+// ---------------------------------------------------------------------------
 
-  const subject = isNachkauf
-    ? `Nachkauf-Lead: ${leadName} aus ${leadOrt}`
-    : `Neuer Lead: ${leadName} aus ${leadOrt}`
+export async function sendLeadZugewiesenEmail(
+  to: string,
+  data: {
+    beraterName: string
+    leadName: string
+    leadEmail?: string
+    leadPhone?: string
+  }
+): Promise<boolean> {
+  const rows = [
+    { label: 'Name', value: data.leadName },
+    ...(data.leadPhone ? [{ label: 'Telefon', value: data.leadPhone }] : []),
+    ...(data.leadEmail ? [{ label: 'E-Mail', value: data.leadEmail }] : []),
+  ]
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #1a1a1a;">Hallo ${beraterName},</h2>
-      <p>Dir wurde ein neuer ${isNachkauf ? 'Nachkauf-' : ''}Lead zugewiesen:</p>
-      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-        <tr>
-          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold;">Name</td>
-          <td style="padding: 8px 12px; background: #f5f5f5;">${leadName}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 12px; font-weight: bold;">Telefon</td>
-          <td style="padding: 8px 12px;">${leadTelefon}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold;">Ort</td>
-          <td style="padding: 8px 12px; background: #f5f5f5;">${leadOrt}</td>
-        </tr>
-      </table>
-      <p>Bitte kontaktiere den Lead so schnell wie möglich.</p>
-      <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads"
-         style="display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin-top: 12px;">
-        Lead ansehen
-      </a>
-      <p style="color: #666; font-size: 12px; margin-top: 30px;">
-        Diese E-Mail wurde automatisch von LeadSolution versendet.
-      </p>
-    </div>
-  `
+  const tableRows = rows
+    .map(
+      (r, i) =>
+        `<tr>
+          <td style="padding: 10px 14px; font-weight: 600; background-color: ${i % 2 === 0 ? '#f4f4f5' : '#ffffff'};">${r.label}</td>
+          <td style="padding: 10px 14px; background-color: ${i % 2 === 0 ? '#f4f4f5' : '#ffffff'};">${r.value}</td>
+        </tr>`
+    )
+    .join('')
 
-  return sendEmail({ to: beraterEmail, subject, html })
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px;">Hallo ${data.beraterName},</h2>
+    <p>Dir wurde ein neuer Lead zugewiesen:</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; margin: 16px 0;">
+      ${tableRows}
+    </table>
+    <p>Bitte kontaktiere den Lead so schnell wie m&ouml;glich.</p>
+    ${emailButton('Lead ansehen', `${APP_URL}/dashboard/leads`)}
+  `)
+
+  return sendEmail(to, `Neuer Lead: ${data.leadName}`, html)
 }
 
-/**
- * Send a reminder to follow up on a lead.
- */
-export async function sendReminderEmail(params: {
-  beraterEmail: string
-  beraterName: string
-  leadName: string
-  erinnerungsTyp: string
-}): Promise<SendEmailResult> {
-  const { beraterEmail, beraterName, leadName, erinnerungsTyp } = params
+// ---------------------------------------------------------------------------
+// Template: SLA Warnung
+// ---------------------------------------------------------------------------
 
-  const subject = `Erinnerung: ${leadName} - ${erinnerungsTyp}`
+export async function sendSlaWarningEmail(
+  to: string,
+  data: {
+    beraterName: string
+    leadName: string
+    minutesLeft: number
+  }
+): Promise<boolean> {
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px;">SLA-Warnung</h2>
+    <p>Hallo ${data.beraterName},</p>
+    <p style="padding: 16px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+      <strong>Achtung:</strong> F&uuml;r den Lead <strong>${data.leadName}</strong> verbleiben nur noch
+      <strong>${data.minutesLeft} Minuten</strong> bis zum SLA-Ablauf.
+    </p>
+    <p>Bitte nimm umgehend Kontakt auf, um eine R&uuml;ckvergabe zu vermeiden.</p>
+    ${emailButton('Lead ansehen', `${APP_URL}/dashboard/leads`)}
+  `)
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #1a1a1a;">Hallo ${beraterName},</h2>
-      <p>Erinnerung für deinen Lead <strong>${leadName}</strong>:</p>
-      <p style="padding: 16px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-        ${erinnerungsTyp}
-      </p>
-      <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads"
-         style="display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin-top: 12px;">
-        Lead ansehen
-      </a>
-      <p style="color: #666; font-size: 12px; margin-top: 30px;">
-        Diese E-Mail wurde automatisch von LeadSolution versendet.
-      </p>
-    </div>
-  `
-
-  return sendEmail({ to: beraterEmail, subject, html })
+  return sendEmail(to, `SLA-Warnung: ${data.leadName} — ${data.minutesLeft} Min. verbleibend`, html)
 }
 
-/**
- * Send an alert to the admin team.
- */
-export async function sendAdminAlertEmail(params: {
-  subject: string
-  nachricht: string
-  details?: Record<string, unknown>
-}): Promise<SendEmailResult> {
-  const { subject, nachricht, details } = params
-  const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@leadsolution.de'
+// ---------------------------------------------------------------------------
+// Template: Berater Einladung
+// ---------------------------------------------------------------------------
 
-  const detailsHtml = details
-    ? `<pre style="padding: 12px; background: #f5f5f5; border-radius: 4px; overflow-x: auto; font-size: 13px;">${JSON.stringify(details, null, 2)}</pre>`
+export async function sendBeraterInviteEmail(
+  to: string,
+  data: {
+    name: string
+    inviteUrl: string
+  }
+): Promise<boolean> {
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px;">Willkommen bei LeadSolution!</h2>
+    <p>Hallo ${data.name},</p>
+    <p>Du wurdest als Berater zu <strong>LeadSolution</strong> eingeladen. Klicke auf den Button unten, um dein Passwort festzulegen und dein Konto zu aktivieren:</p>
+    ${emailButton('Konto aktivieren', data.inviteUrl)}
+    <p style="color: #71717a; font-size: 13px;">Falls du diese Einladung nicht erwartet hast, kannst du diese E-Mail ignorieren.</p>
+  `)
+
+  return sendEmail(to, 'Einladung zu LeadSolution', html)
+}
+
+// ---------------------------------------------------------------------------
+// Template: Lead Reminder (30min ohne Kontakt)
+// ---------------------------------------------------------------------------
+
+export async function sendReminderEmail(
+  to: string,
+  data: {
+    beraterName: string
+    leadName: string
+    leadPhone?: string
+  }
+): Promise<boolean> {
+  const phoneInfo = data.leadPhone
+    ? `<p>Telefon: <strong>${data.leadPhone}</strong></p>`
     : ''
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #dc2626;">Admin Alert</h2>
-      <p>${nachricht}</p>
-      ${detailsHtml}
-      <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin"
-         style="display: inline-block; padding: 12px 24px; background: #dc2626; color: white; text-decoration: none; border-radius: 6px; margin-top: 12px;">
-        Admin-Panel öffnen
-      </a>
-      <p style="color: #666; font-size: 12px; margin-top: 30px;">
-        LeadSolution System-Benachrichtigung
-      </p>
-    </div>
-  `
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px;">Erinnerung: Lead wartet</h2>
+    <p>Hallo ${data.beraterName},</p>
+    <p style="padding: 16px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+      Dein Lead <strong>${data.leadName}</strong> wartet seit &uuml;ber 30 Minuten auf eine Kontaktaufnahme.
+    </p>
+    ${phoneInfo}
+    <p>Bitte kontaktiere den Lead zeitnah, um die bestm&ouml;gliche Conversion zu erzielen.</p>
+    ${emailButton('Lead ansehen', `${APP_URL}/dashboard/leads`)}
+  `)
 
-  return sendEmail({ to: adminEmail, subject: `[Alert] ${subject}`, html })
+  return sendEmail(to, `Erinnerung: ${data.leadName} wartet auf Kontakt`, html)
+}
+
+// ---------------------------------------------------------------------------
+// Template: Admin Alert (Warteschlange voll)
+// ---------------------------------------------------------------------------
+
+export async function sendAdminAlertEmail(
+  to: string,
+  data: {
+    alertType: string
+    message: string
+    count?: number
+  }
+): Promise<boolean> {
+  const countInfo = data.count !== undefined
+    ? `<p style="font-size: 28px; font-weight: 700; color: #dc2626; margin: 16px 0;">${data.count}</p>`
+    : ''
+
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #dc2626;">Admin-Alert: ${data.alertType}</h2>
+    ${countInfo}
+    <p>${data.message}</p>
+    ${emailButton('Admin-Panel &ouml;ffnen', `${APP_URL}/admin`)}
+  `)
+
+  return sendEmail(to, `[Alert] ${data.alertType}`, html)
+}
+
+// ---------------------------------------------------------------------------
+// Template: Nachkauf Bestätigung
+// ---------------------------------------------------------------------------
+
+export async function sendNachkaufEmail(
+  to: string,
+  data: {
+    beraterName: string
+    anzahlLeads: number
+    betrag: string
+  }
+): Promise<boolean> {
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px;">Nachkauf best&auml;tigt</h2>
+    <p>Hallo ${data.beraterName},</p>
+    <p>Dein Nachkauf wurde erfolgreich verarbeitet:</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; margin: 16px 0;">
+      <tr>
+        <td style="padding: 10px 14px; font-weight: 600; background-color: #f4f4f5;">Anzahl Leads</td>
+        <td style="padding: 10px 14px; background-color: #f4f4f5;">${data.anzahlLeads}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 14px; font-weight: 600;">Betrag</td>
+        <td style="padding: 10px 14px;">${data.betrag}</td>
+      </tr>
+    </table>
+    <p>Die zus&auml;tzlichen Leads werden deinem Kontingent hinzugef&uuml;gt und in K&uuml;rze zugewiesen.</p>
+    ${emailButton('Dashboard &ouml;ffnen', `${APP_URL}/dashboard`)}
+  `)
+
+  return sendEmail(to, `Nachkauf best\u00e4tigt: ${data.anzahlLeads} Leads`, html)
+}
+
+// ---------------------------------------------------------------------------
+// Template: Willkommen nach Aktivierung
+// ---------------------------------------------------------------------------
+
+export async function sendWillkommenEmail(
+  to: string,
+  data: {
+    name: string
+    leads: number
+    preisProLead: string
+  }
+): Promise<boolean> {
+  const html = emailLayout(`
+    <h2 style="margin: 0 0 16px 0; font-size: 20px;">Willkommen bei LeadSolution, ${data.name}!</h2>
+    <p>Dein Konto ist jetzt aktiv. Hier eine &Uuml;bersicht deines Pakets:</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; margin: 16px 0;">
+      <tr>
+        <td style="padding: 10px 14px; font-weight: 600; background-color: #f4f4f5;">Leads pro Monat</td>
+        <td style="padding: 10px 14px; background-color: #f4f4f5;">${data.leads}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 14px; font-weight: 600;">Preis pro Lead</td>
+        <td style="padding: 10px 14px;">${data.preisProLead}</td>
+      </tr>
+    </table>
+    <p>Du erh&auml;ltst ab sofort qualifizierte Leads direkt in dein Dashboard. Wir empfehlen, Leads innerhalb von 15 Minuten zu kontaktieren, um die besten Ergebnisse zu erzielen.</p>
+    ${emailButton('Zum Dashboard', `${APP_URL}/dashboard`)}
+  `)
+
+  return sendEmail(to, 'Willkommen bei LeadSolution — Dein Konto ist aktiv', html)
 }

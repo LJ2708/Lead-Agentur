@@ -73,11 +73,9 @@ async function handleCron(request: NextRequest) {
       const uhrzeitStr = terminDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
 
       // Send email reminder to berater
-      await sendReminderEmail({
-        beraterEmail: beraterProfile.email,
+      await sendReminderEmail(beraterProfile.email, {
         beraterName: beraterProfile.full_name ?? 'Berater',
         leadName: `${lead.vorname ?? ''} ${lead.nachname ?? ''}`,
-        erinnerungsTyp: `Termin morgen um ${uhrzeitStr} Uhr`,
       })
 
       // Send WhatsApp to lead if opted in
@@ -160,11 +158,9 @@ async function handleCron(request: NextRequest) {
       if (!beraterProfile) continue
 
       // Send email reminder to berater
-      await sendReminderEmail({
-        beraterEmail: beraterProfile.email,
+      await sendReminderEmail(beraterProfile.email, {
         beraterName: beraterProfile.full_name ?? 'Berater',
         leadName: `${lead.vorname ?? ''} ${lead.nachname ?? ''}`,
-        erinnerungsTyp: `Termin in 1 Stunde um ${uhrzeitStr} Uhr`,
       })
 
       // Send WhatsApp to lead if opted in
