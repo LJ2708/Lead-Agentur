@@ -20,6 +20,7 @@ import {
   LineChart,
   Line,
 } from "recharts"
+import { ReportExportButton } from "@/components/dashboard/ReportExportButton"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -303,20 +304,23 @@ export default function AdminReportsPage() {
             Auswertungen und Analysen.
           </p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-border p-1">
-          {(["7d", "30d", "90d"] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                period === p
-                  ? "bg-blue-600 text-white"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {p === "7d" ? "7 Tage" : p === "30d" ? "30 Tage" : "90 Tage"}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <ReportExportButton period={period} />
+          <div className="flex gap-1 rounded-lg border border-border p-1">
+            {(["7d", "30d", "90d"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  period === p
+                    ? "bg-blue-600 text-white"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {p === "7d" ? "7 Tage" : p === "30d" ? "30 Tage" : "90 Tage"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

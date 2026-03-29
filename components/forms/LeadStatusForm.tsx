@@ -25,16 +25,19 @@ import {
   STATUS_CONFIG,
   type LeadState,
 } from "@/lib/leads/state-machine";
+import { LeadFeedback } from "@/components/dashboard/LeadFeedback";
 
 const DESTRUCTIVE_STATUSES: LeadState[] = ["verloren"];
 
 interface LeadStatusFormProps {
+  leadId?: string;
   currentStatus: string;
   role: "admin" | "berater" | "setter";
   onSubmit: (newStatus: string, notiz?: string) => Promise<void>;
 }
 
 export function LeadStatusForm({
+  leadId,
   currentStatus,
   role,
   onSubmit,
@@ -43,6 +46,7 @@ export function LeadStatusForm({
   const [notiz, setNotiz] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState<"abschluss" | "verloren" | null>(null);
 
   const validTransitions = getValidTransitions(currentStatus as LeadState, role);
 
@@ -69,9 +73,14 @@ export function LeadStatusForm({
     setIsLoading(true);
     try {
       await onSubmit(selectedStatus, notiz || undefined);
+      const finalStatus = selectedStatus;
       setSelectedStatus("");
       setNotiz("");
       setShowConfirm(false);
+      // Show feedback modal for terminal statuses
+      if (leadId && (finalStatus === "abschluss" || finalStatus === "verloren")) {
+        setFeedbackStatus(finalStatus as "abschluss" | "verloren");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -162,6 +171,16 @@ export function LeadStatusForm({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Feedback modal after abschluss/verloren */}
+      {leadId && feedbackStatus && (
+        <LeadFeedback
+          leadId={leadId}
+          status={feedbackStatus}
+          open={!!feedbackStatus}
+          onClose={() => setFeedbackStatus(null)}
+        />
+      )}
     </>
   );
 }

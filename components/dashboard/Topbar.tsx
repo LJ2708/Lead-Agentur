@@ -18,9 +18,11 @@ import { AvailabilityToggle } from "@/components/dashboard/AvailabilityToggle";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
+import { HelpCenter } from "@/components/dashboard/HelpCenter";
 import { useSidebarContext } from "@/components/dashboard/MobileLayout";
 
 interface TopbarUser {
+  id?: string;
   email: string;
   full_name: string;
   role: string;
@@ -107,6 +109,8 @@ export function Topbar({ user }: TopbarProps) {
         )}
 
         <ThemeToggle />
+
+        <HelpCenter userId={user.id} />
 
         <NotificationBell />
 

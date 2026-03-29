@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   Wallet,
   GitBranch,
+  Activity,
   BarChart3,
   FileText,
   Settings,
@@ -37,6 +38,8 @@ import {
   Calendar,
   Globe,
   Server,
+  MailOpen,
+  RefreshCw,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -59,10 +62,13 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Budget", href: "/admin/budget", icon: Wallet },
     { label: "Routing", href: "/admin/routing", icon: GitBranch },
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+    { label: "Aktivit\u00e4ten", href: "/admin/activity", icon: Activity },
     { label: "Analytics", href: "/admin/analytics", icon: PieChart },
     { label: "Performance", href: "/admin/performance", icon: Trophy },
     { label: "Audit Log", href: "/admin/audit", icon: ScrollText },
     { label: "Webhooks", href: "/admin/webhooks", icon: Globe },
+    { label: "Templates", href: "/admin/templates", icon: MailOpen },
+    { label: "Automation", href: "/admin/automation", icon: RefreshCw },
     { label: "System", href: "/admin/system", icon: Server },
     { label: "Einstellungen", href: "/admin/settings", icon: Settings },
   ],

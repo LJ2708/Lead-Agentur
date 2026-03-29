@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SmartInbox } from "@/components/dashboard/SmartInbox";
+import { WeeklySummary } from "@/components/dashboard/WeeklySummary";
 import { PerformanceWidget } from "@/components/dashboard/PerformanceWidget";
 import { Leaderboard } from "@/components/dashboard/Leaderboard";
 import { BehavioralNudge } from "@/components/dashboard/BehavioralNudge";
@@ -131,6 +132,9 @@ export default async function BeraterDashboardPage() {
           label="Nachkauf"
         />
       </div>
+
+      {/* Weekly Summary */}
+      <WeeklySummary beraterId={berater.id} />
 
       {/* Behavioral Nudge — compact tip */}
       <BehavioralNudge beraterId={berater.id} />

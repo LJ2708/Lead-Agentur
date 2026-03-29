@@ -592,6 +592,7 @@ export default function BeraterLeadDetailPage() {
             </CardHeader>
             <CardContent>
               <LeadStatusForm
+                leadId={leadId}
                 currentStatus={lead.status}
                 role="berater"
                 onSubmit={handleStatusChange}

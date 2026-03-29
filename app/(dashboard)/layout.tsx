@@ -102,6 +102,7 @@ export default async function DashboardLayout({
         topbar={
           <Topbar
             user={{
+              id: user.id,
               email: user.email ?? "",
               full_name: profile.full_name ?? user.email ?? "User",
               role,
