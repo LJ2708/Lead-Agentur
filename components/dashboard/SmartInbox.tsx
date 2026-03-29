@@ -238,7 +238,7 @@ export function SmartInbox({ beraterId }: SmartInboxProps) {
 
       <div className="space-y-6">
         <InboxSection
-          title="SLA laeuft ab"
+          title="SLA läuft ab"
           icon={<AlertTriangle className="h-4 w-4 text-red-600" />}
           leads={slaLeads}
           defaultOpen

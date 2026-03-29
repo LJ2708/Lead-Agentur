@@ -115,7 +115,7 @@ export default async function BeraterDashboardPage() {
       </div>
 
       {/* Compact stats row */}
-      <div data-tour="stats" className="grid grid-cols-4 gap-2">
+      <div data-tour="stats" className="grid grid-cols-4 gap-3">
         <MiniStat
           icon={<Phone className="h-4 w-4 text-blue-600" />}
           value={offeneLeads}
@@ -200,11 +200,11 @@ function MiniStat({
   label: string;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border bg-card p-2.5">
-      {icon}
+    <div className="flex items-center gap-2.5 rounded-lg border bg-card p-3">
+      <div className="flex items-center justify-center">{icon}</div>
       <div className="min-w-0">
-        <p className="text-sm font-bold leading-none">{value}</p>
-        <p className="text-[10px] text-muted-foreground truncate">{label}</p>
+        <p className="text-base font-bold leading-none">{value}</p>
+        <p className="text-xs text-muted-foreground truncate">{label}</p>
       </div>
     </div>
   );

@@ -65,6 +65,13 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  meta_lead_ad: "Meta Ad",
+  landingpage: "Landingpage",
+  manuell: "Manuell",
+  import: "Import",
+}
+
 const PRIORITY_BORDER: Record<string, string> = {
   hot: "border-l-red-500",
   warm: "border-l-amber-400",
@@ -196,7 +203,7 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
             )}
             {lead.source && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                {lead.source}
+                {SOURCE_LABELS[lead.source] ?? lead.source}
               </Badge>
             )}
             <span

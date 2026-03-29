@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -21,12 +20,6 @@ interface WeeklyData {
   termine: number
   abschluesse: number
   score: number
-}
-
-interface ComparisonRow {
-  label: string
-  current: number | string
-  diff: number
 }
 
 // ---------------------------------------------------------------------------
@@ -49,11 +42,11 @@ function getWeekRange(weeksAgo: number): { start: Date; end: Date } {
   return { start: thisMonday, end: thisSunday }
 }
 
-function DiffBadge({ diff, suffix }: { diff: number; suffix?: string }) {
+function InlineDiff({ diff }: { diff: number }) {
   if (diff === 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
-        <Minus className="h-3 w-3" />
+      <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+        <Minus className="h-2.5 w-2.5" />
         <span>=</span>
       </span>
     )
@@ -63,19 +56,18 @@ function DiffBadge({ diff, suffix }: { diff: number; suffix?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 text-xs font-medium",
+        "inline-flex items-center gap-0.5 text-[10px] font-medium",
         isPositive ? "text-green-600" : "text-red-600"
       )}
     >
       {isPositive ? (
-        <TrendingUp className="h-3 w-3" />
+        <TrendingUp className="h-2.5 w-2.5" />
       ) : (
-        <TrendingDown className="h-3 w-3" />
+        <TrendingDown className="h-2.5 w-2.5" />
       )}
       <span>
         {isPositive ? "+" : ""}
         {diff}
-        {suffix ?? ""}
       </span>
     </span>
   )
@@ -158,71 +150,59 @@ export function WeeklySummary({ beraterId }: WeeklySummaryProps) {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Wochenübersicht</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-28 w-full" />
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border bg-card px-4 py-2.5">
+        <Skeleton className="h-5 w-full" />
+      </div>
     )
   }
 
   if (!thisWeek || !lastWeek) return null
 
-  const rows: ComparisonRow[] = [
+  const metrics: { label: string; value: number | string; diff: number }[] = [
     {
-      label: "Leads erhalten",
-      current: thisWeek.leadsErhalten,
+      label: "Leads",
+      value: thisWeek.leadsErhalten,
       diff: thisWeek.leadsErhalten - lastWeek.leadsErhalten,
     },
     {
       label: "Kontaktiert",
-      current: thisWeek.kontaktiert,
+      value: thisWeek.kontaktiert,
       diff: thisWeek.kontaktiert - lastWeek.kontaktiert,
     },
     {
       label: "Termine",
-      current: thisWeek.termine,
+      value: thisWeek.termine,
       diff: thisWeek.termine - lastWeek.termine,
     },
     {
       label: "Abschlüsse",
-      current: thisWeek.abschluesse,
+      value: thisWeek.abschluesse,
       diff: thisWeek.abschluesse - lastWeek.abschluesse,
     },
     {
       label: "Score",
-      current: `${thisWeek.score}/100`,
+      value: `${thisWeek.score}/100`,
       diff: thisWeek.score - lastWeek.score,
     },
   ]
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Wochenübersicht</CardTitle>
-        <p className="text-xs text-muted-foreground">
-          vs. letzte Woche
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {rows.map((row) => (
-            <div
-              key={row.label}
-              className="flex items-center justify-between text-sm"
-            >
-              <span className="text-muted-foreground">{row.label}</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{row.current}</span>
-                <DiffBadge diff={row.diff} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border bg-card px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm">
+        <span className="mr-1 text-xs font-medium text-muted-foreground">
+          Woche:
+        </span>
+        {metrics.map((m, i) => (
+          <span key={m.label} className="inline-flex items-center gap-1">
+            <span className="text-xs text-muted-foreground">{m.label}:</span>
+            <span className="text-xs font-semibold">{m.value}</span>
+            <InlineDiff diff={m.diff} />
+            {i < metrics.length - 1 && (
+              <span className="mx-1 text-muted-foreground/40">|</span>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }

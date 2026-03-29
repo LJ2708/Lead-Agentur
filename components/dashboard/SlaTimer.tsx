@@ -51,6 +51,21 @@ export function SlaTimer({ deadline, status }: SlaTimerProps) {
   const seconds = totalSeconds % 60
   const display = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
 
+  const isExpired = remaining <= 0
+
+  if (isExpired) {
+    return (
+      <div
+        role="timer"
+        aria-label="Abgelaufen"
+        className="flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold text-red-700 bg-red-100"
+      >
+        <XCircle className="h-3.5 w-3.5" />
+        <span>Abgelaufen</span>
+      </div>
+    )
+  }
+
   const isGreen = remaining > 15 * 60 * 1000
   const isYellow = remaining > 5 * 60 * 1000 && remaining <= 15 * 60 * 1000
   const isRed = remaining > 2 * 60 * 1000 && remaining <= 5 * 60 * 1000

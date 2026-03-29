@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +16,7 @@ import { ChevronDown, LogOut, Menu, Search, User as UserIcon } from "lucide-reac
 import { AvailabilityToggle } from "@/components/dashboard/AvailabilityToggle";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
-import { CommandPalette } from "@/components/dashboard/CommandPalette";
+import { useShortcuts } from "@/components/dashboard/ShortcutProvider";
 import { HelpCenter } from "@/components/dashboard/HelpCenter";
 import { useSidebarContext } from "@/components/dashboard/MobileLayout";
 
@@ -43,19 +42,7 @@ const roleLabelMap: Record<string, string> = {
 export function Topbar({ user }: TopbarProps) {
   const router = useRouter();
   const { toggle } = useSidebarContext();
-  const [commandOpen, setCommandOpen] = useState(false);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-      e.preventDefault();
-      setCommandOpen((prev) => !prev);
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  const { openCommandPalette } = useShortcuts();
 
   async function handleLogout() {
     const supabase = createClient();
@@ -64,10 +51,7 @@ export function Topbar({ user }: TopbarProps) {
   }
 
   return (
-    <>
-      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
-
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-6">
         {/* Left side - hamburger on mobile */}
         <div className="flex items-center gap-2">
           <Button
@@ -86,7 +70,7 @@ export function Topbar({ user }: TopbarProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCommandOpen(true)}
+            onClick={() => openCommandPalette()}
             className="hidden gap-2 text-muted-foreground sm:flex"
           >
             <Search className="h-4 w-4" />
@@ -98,7 +82,7 @@ export function Topbar({ user }: TopbarProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setCommandOpen(true)}
+            onClick={() => openCommandPalette()}
             className="sm:hidden"
             aria-label="Suche öffnen"
           >
@@ -152,6 +136,5 @@ export function Topbar({ user }: TopbarProps) {
         </DropdownMenu>
         </div>
       </header>
-    </>
   );
 }
