@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils"
 import type { LeadScore } from "@/lib/scoring/lead-score"
 import { formatTimeAgo } from "@/lib/scoring/lead-score"
+import { PriorityFlag } from "@/components/dashboard/PriorityFlag"
 import type { Tables } from "@/types/database"
 
 type Activity = Tables<"lead_activities">
@@ -166,6 +167,19 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
+                <span onClick={(e) => e.stopPropagation()}>
+                  <PriorityFlag
+                    leadId={lead.id}
+                    currentPriority={
+                      (lead.custom_fields as Record<string, string> | null)?.priority as
+                        | "none"
+                        | "low"
+                        | "medium"
+                        | "high"
+                        | "urgent" ?? "none"
+                    }
+                  />
+                </span>
                 <Link
                   href={`/berater/leads/${lead.id}`}
                   className="truncate text-base font-semibold text-foreground hover:underline"

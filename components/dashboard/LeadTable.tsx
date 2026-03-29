@@ -22,6 +22,7 @@ import { formatDate } from "@/lib/utils"
 import { ArrowUpDown, UserPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import { PriorityFlag } from "@/components/dashboard/PriorityFlag"
 import { toast } from "sonner"
 
 interface Lead {
@@ -36,6 +37,8 @@ interface Lead {
   berater_id?: string | null
   berater?: { profiles?: { full_name: string | null } } | null
   besitzer?: { full_name: string | null } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  custom_fields?: any
 }
 
 interface BeraterOption {
@@ -259,7 +262,19 @@ export function LeadTable({
                 />
               </TableCell>
               <TableCell className="font-medium">
-                {lead.vorname} {lead.nachname}
+                <span className="flex items-center gap-1.5">
+                  <PriorityFlag
+                    leadId={lead.id}
+                    currentPriority={
+                      ((typeof lead.custom_fields === "object" &&
+                        lead.custom_fields !== null &&
+                        !Array.isArray(lead.custom_fields)
+                        ? (lead.custom_fields as Record<string, string>).priority
+                        : undefined) ?? "none") as "none" | "low" | "medium" | "high" | "urgent"
+                    }
+                  />
+                  {lead.vorname} {lead.nachname}
+                </span>
               </TableCell>
               <TableCell>{lead.email}</TableCell>
               <TableCell>{lead.telefon ?? "-"}</TableCell>

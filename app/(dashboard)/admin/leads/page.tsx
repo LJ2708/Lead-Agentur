@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { ExportButton } from "@/components/dashboard/ExportButton"
 import { ImportLeadsDialog } from "@/components/dashboard/ImportLeadsDialog"
+import { SavedFilters } from "@/components/dashboard/SavedFilters"
 import type { Database } from "@/types/database"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -261,6 +262,23 @@ export default function AdminLeadsPage() {
                   Filter zurücksetzen
                 </Button>
               )}
+            </div>
+            <div className="mt-3 flex items-center border-t pt-3">
+              <SavedFilters
+                currentFilters={{
+                  search,
+                  status: statusFilter,
+                  dateFrom,
+                  dateTo,
+                }}
+                onApply={(filters) => {
+                  setSearch(filters.search ?? "")
+                  setStatusFilter(filters.status ?? "alle")
+                  setDateFrom(filters.dateFrom ?? "")
+                  setDateTo(filters.dateTo ?? "")
+                  setPage(0)
+                }}
+              />
             </div>
           </form>
         </CardContent>

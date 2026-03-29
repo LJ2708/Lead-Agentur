@@ -21,12 +21,12 @@ import {
   MessageCircle,
   Calendar,
   Loader2,
-  Send,
   Star,
   PhoneCall,
 } from "lucide-react";
 import { formatDate, getStatusLabel, getStatusColor, cn } from "@/lib/utils";
 import { calculateLeadScore, type LeadScore } from "@/lib/scoring/lead-score";
+import { LeadComments } from "@/components/dashboard/LeadComments";
 import type { Tables } from "@/types/database";
 
 type Lead = Tables<"leads">;
@@ -48,10 +48,6 @@ export default function BeraterLeadDetailPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [beraterId, setBeraterId] = useState<string | null>(null);
   const [score, setScore] = useState<LeadScore | null>(null);
-
-  // Note form
-  const [noteText, setNoteText] = useState("");
-  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
 
   // Termin form
   const [terminDatum, setTerminDatum] = useState("");
@@ -154,23 +150,6 @@ export default function BeraterLeadDetailPage() {
       created_by: userId,
     });
 
-    await fetchData();
-  }
-
-  async function handleAddNote() {
-    if (!lead || !userId || !noteText.trim()) return;
-
-    setIsSubmittingNote(true);
-    await supabase.from("lead_activities").insert({
-      lead_id: lead.id,
-      type: "notiz",
-      title: "Notiz",
-      description: noteText.trim(),
-      created_by: userId,
-    });
-
-    setNoteText("");
-    setIsSubmittingNote(false);
     await fetchData();
   }
 
@@ -704,33 +683,8 @@ export default function BeraterLeadDetailPage() {
         </div>
       </div>
 
-      {/* Quick Note - Always visible at bottom */}
-      <Card>
-        <CardContent className="flex items-center gap-3 p-4">
-          <Textarea
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Schnelle Notiz hinzufuegen..."
-            rows={1}
-            className="min-h-[40px] flex-1"
-          />
-          <Button
-            onClick={handleAddNote}
-            disabled={!noteText.trim() || isSubmittingNote}
-            size="sm"
-          >
-            {isSubmittingNote ? (
-              <Loader2
-                className="h-4 w-4 animate-spin"
-                data-icon="inline-start"
-              />
-            ) : (
-              <Send className="h-4 w-4" data-icon="inline-start" />
-            )}
-            Speichern
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Team-Kommentare */}
+      <LeadComments leadId={leadId} />
 
       {/* Outcome Selector Modal */}
       {showOutcome && lead && (

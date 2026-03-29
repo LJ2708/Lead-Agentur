@@ -7,6 +7,7 @@ import { MobileLayout } from "@/components/dashboard/MobileLayout";
 import { EventListener } from "@/components/dashboard/EventListener";
 import { SkipToContent } from "@/components/dashboard/SkipToContent";
 import { ShortcutProvider } from "@/components/dashboard/ShortcutProvider";
+import { QuickActionsFAB } from "@/components/dashboard/QuickActionsFAB";
 
 export default async function DashboardLayout({
   children,
@@ -115,6 +116,7 @@ export default async function DashboardLayout({
         >
           <EventListener userId={user.id} beraterId={topbarBeraterId} />
           {children}
+          <QuickActionsFAB role={role} />
         </MobileLayout>
       </ShortcutProvider>
     </>

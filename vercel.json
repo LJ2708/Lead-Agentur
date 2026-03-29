@@ -3,6 +3,7 @@
     { "path": "/api/cron/rueckvergabe", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/reminder", "schedule": "*/30 * * * *" },
     { "path": "/api/cron/availability", "schedule": "* * * * *" },
-    { "path": "/api/cron/followup", "schedule": "*/30 * * * *" }
+    { "path": "/api/cron/followup", "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/weekly-report", "schedule": "0 8 * * 1" }
   ]
 }
