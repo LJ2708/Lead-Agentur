@@ -276,7 +276,7 @@ export function KPIDashboard() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="pt-0">
@@ -289,7 +289,7 @@ export function KPIDashboard() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {kpis.map((kpi) => {
         const trendColor =
           kpi.trend === "up"
@@ -299,28 +299,28 @@ export function KPIDashboard() {
               : "#6b7280"
 
         return (
-          <Card key={kpi.label}>
-            <CardContent className="pt-0">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {kpi.label}
-                </span>
-                <div className="flex items-end justify-between gap-2">
-                  <span className="text-xl font-bold tracking-tight">
+          <Card key={kpi.label} className="overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {kpi.label}
+                  </span>
+                  <span className="text-2xl font-bold tracking-tight">
                     {kpi.value}
                   </span>
-                  <div className="w-16 shrink-0">
-                    <Sparkline data={kpi.sparkline} color={trendColor} />
+                  <div className="flex items-center gap-1 text-xs" style={{ color: trendColor }}>
+                    {kpi.trend === "up" && <TrendingUp className="h-3 w-3" />}
+                    {kpi.trend === "down" && <TrendingDown className="h-3 w-3" />}
+                    {kpi.trend === "neutral" && <Minus className="h-3 w-3" />}
+                    <span>
+                      {kpi.trend === "up" ? "+" : kpi.trend === "down" ? "-" : ""}
+                      {kpi.trendPct}%
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-xs" style={{ color: trendColor }}>
-                  {kpi.trend === "up" && <TrendingUp className="h-3 w-3" />}
-                  {kpi.trend === "down" && <TrendingDown className="h-3 w-3" />}
-                  {kpi.trend === "neutral" && <Minus className="h-3 w-3" />}
-                  <span>
-                    {kpi.trend === "up" ? "+" : kpi.trend === "down" ? "-" : ""}
-                    {kpi.trendPct}%
-                  </span>
+                <div className="w-20 shrink-0 pt-2">
+                  <Sparkline data={kpi.sparkline} color={trendColor} />
                 </div>
               </div>
             </CardContent>
