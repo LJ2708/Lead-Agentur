@@ -51,6 +51,11 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 const KEYBOARD_SHORTCUTS = [
   { keys: "\u2318K", description: "Suche \u00f6ffnen" },
   { keys: "\u2318N", description: "Neuer Lead (Admin)" },
+  { keys: "\u2318\u21E7L", description: "Zu Leads navigieren" },
+  { keys: "\u2318\u21E7B", description: "Zu Berater navigieren" },
+  { keys: "Esc", description: "Modals schlie\u00dfen" },
+  { keys: "N", description: "Schnelle Notiz (Lead-Detail)" },
+  { keys: "C", description: "Schneller Anruf (Lead-Detail)" },
 ]
 
 const FAQ_ITEMS: FaqItem[] = [

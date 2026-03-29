@@ -7,6 +7,8 @@ import { Leaderboard } from "@/components/dashboard/Leaderboard";
 import { BehavioralNudge } from "@/components/dashboard/BehavioralNudge";
 import { KontingentIndicator } from "@/components/dashboard/KontingentIndicator";
 import { PacingChart } from "@/components/dashboard/PacingChart";
+import { GoalTracker } from "@/components/dashboard/GoalTracker";
+import { OnboardingTour } from "@/components/dashboard/OnboardingTour";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
@@ -92,6 +94,9 @@ export default async function BeraterDashboardPage() {
 
   return (
     <div className="space-y-4">
+      {/* Onboarding Tour for new users */}
+      <OnboardingTour />
+
       {/* Header — compact */}
       <div>
         <h1 className="text-xl font-bold tracking-tight">
@@ -110,7 +115,7 @@ export default async function BeraterDashboardPage() {
       </div>
 
       {/* Compact stats row */}
-      <div className="grid grid-cols-4 gap-2">
+      <div data-tour="stats" className="grid grid-cols-4 gap-2">
         <MiniStat
           icon={<Phone className="h-4 w-4 text-blue-600" />}
           value={offeneLeads}
@@ -140,15 +145,22 @@ export default async function BeraterDashboardPage() {
       <BehavioralNudge beraterId={berater.id} />
 
       {/* MAIN: Smart Inbox — the primary work area */}
-      <SmartInbox beraterId={berater.id} />
+      <div data-tour="smart-inbox">
+        <SmartInbox beraterId={berater.id} />
+      </div>
 
       {/* Collapsible: Performance & Pacing */}
-      <CollapsibleSection title="Meine Performance">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <PerformanceWidget beraterId={berater.id} />
-          <Leaderboard maxRows={5} compact />
-        </div>
-      </CollapsibleSection>
+      <div data-tour="performance">
+        <CollapsibleSection title="Meine Performance">
+          <div className="space-y-4">
+            <GoalTracker beraterId={berater.id} />
+            <div className="grid gap-4 lg:grid-cols-2">
+              <PerformanceWidget beraterId={berater.id} />
+              <Leaderboard maxRows={5} compact />
+            </div>
+          </div>
+        </CollapsibleSection>
+      </div>
 
       <CollapsibleSection title="Kontingent & Pacing">
         <div className="grid gap-4 lg:grid-cols-2">

@@ -40,6 +40,9 @@ import {
   Server,
   MailOpen,
   RefreshCw,
+  Bell,
+  Code,
+  UserCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -69,7 +72,9 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Webhooks", href: "/admin/webhooks", icon: Globe },
     { label: "Templates", href: "/admin/templates", icon: MailOpen },
     { label: "Automation", href: "/admin/automation", icon: RefreshCw },
+    { label: "API Docs", href: "/admin/api-docs", icon: Code },
     { label: "System", href: "/admin/system", icon: Server },
+    { label: "Benachrichtigungen", href: "/notifications", icon: Bell },
     { label: "Einstellungen", href: "/admin/settings", icon: Settings },
   ],
   teamleiter: [
@@ -81,17 +86,21 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Budget", href: "/admin/budget", icon: Wallet },
     { label: "Routing", href: "/admin/routing", icon: GitBranch },
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+    { label: "Benachrichtigungen", href: "/notifications", icon: Bell },
   ],
   berater: [
     { label: "Overview", href: "/berater", icon: LayoutDashboard },
     { label: "Meine Leads", href: "/berater/leads", icon: FileText },
     { label: "Kalender", href: "/berater/kalender", icon: Calendar },
     { label: "Nachkauf", href: "/berater/nachkauf", icon: ShoppingCart },
+    { label: "Mein Profil", href: "/berater/profil", icon: UserCircle },
+    { label: "Benachrichtigungen", href: "/notifications", icon: Bell },
     { label: "Einstellungen", href: "/berater/settings", icon: Settings },
   ],
   setter: [
     { label: "Arbeitsliste", href: "/setter", icon: Headphones },
     { label: "Meine Statistiken", href: "/setter/stats", icon: BarChart3 },
+    { label: "Benachrichtigungen", href: "/notifications", icon: Bell },
   ],
 };
 

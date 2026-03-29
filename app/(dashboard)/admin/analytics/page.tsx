@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
+import { BeraterHeatmap } from "@/components/dashboard/BeraterHeatmap"
+import { LeadMapPlaceholder } from "@/components/dashboard/LeadMapPlaceholder"
 import {
   BarChart,
   Bar,
@@ -829,6 +831,12 @@ export default function AdminAnalyticsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Section 6: Berater Activity Heatmap */}
+      <BeraterHeatmap />
+
+      {/* Section 7: Lead-Verteilung (Placeholder) */}
+      <LeadMapPlaceholder />
     </div>
   )
 }

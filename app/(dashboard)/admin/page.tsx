@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { StatsCard } from "@/components/dashboard/StatsCard"
 import { LeadStatusBadge } from "@/components/dashboard/LeadStatusBadge"
 import { SmartInsights } from "@/components/dashboard/SmartInsights"
 import { RealtimeLeadFeed } from "@/components/dashboard/RealtimeLeadFeed"
+import { KPIDashboard } from "@/components/dashboard/KPIDashboard"
+import { RevenueChart } from "@/components/dashboard/RevenueChart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,12 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { formatEuro, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import {
-  Users,
-  UserCheck,
-  TrendingUp,
-  Zap,
   RefreshCw,
   PlusCircle,
   UserPlus,
@@ -27,35 +24,6 @@ import {
 
 export default async function AdminOverviewPage() {
   const supabase = await createClient()
-
-  // Fetch total leads
-  const { count: totalLeads } = await supabase
-    .from("leads")
-    .select("*", { count: "exact", head: true })
-
-  // Fetch leads this month
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const { count: leadsThisMonth } = await supabase
-    .from("leads")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", monthStart)
-
-  // Fetch active berater count
-  const { count: activeBerater } = await supabase
-    .from("berater")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "aktiv")
-
-  // Fetch total revenue from berater umsatz
-  const { data: beraterRevenue } = await supabase
-    .from("berater")
-    .select("umsatz_gesamt_cents")
-
-  const totalRevenue = (beraterRevenue ?? []).reduce(
-    (sum, b) => sum + b.umsatz_gesamt_cents,
-    0
-  )
 
   // Fetch recent 10 leads
   const { data: recentLeads } = await supabase
@@ -93,33 +61,8 @@ export default async function AdminOverviewPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatsCard
-          title="Leads gesamt"
-          value={totalLeads ?? 0}
-          description="Alle eingegangenen Leads"
-          icon={Zap}
-        />
-        <StatsCard
-          title="Leads diesen Monat"
-          value={leadsThisMonth ?? 0}
-          description={`Seit ${formatDate(monthStart)}`}
-          icon={TrendingUp}
-        />
-        <StatsCard
-          title="Aktive Berater"
-          value={activeBerater ?? 0}
-          description="Mit Status aktiv"
-          icon={Users}
-        />
-        <StatsCard
-          title="Gesamtumsatz"
-          value={formatEuro(totalRevenue)}
-          description="Alle erfolgreichen Zahlungen"
-          icon={UserCheck}
-        />
-      </div>
+      {/* KPI Dashboard — comprehensive overview */}
+      <KPIDashboard />
 
       {/* Schnellaktionen */}
       <Card>
@@ -152,6 +95,9 @@ export default async function AdminOverviewPage() {
 
       {/* KI-Einblicke */}
       <SmartInsights />
+
+      {/* Umsatzentwicklung */}
+      <RevenueChart />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Leads */}
