@@ -230,6 +230,14 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
             </span>
           </div>
 
+          {/* Row 2b: Ad Creative */}
+          {lead.ad_name && (
+            <div className="ml-9 mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="font-medium">Anzeige:</span>
+              <span className="truncate">{lead.ad_name}</span>
+            </div>
+          )}
+
           {/* Row 3: AI suggestion */}
           <div className="mt-2.5 ml-9 flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
             <div className="flex items-center gap-2 text-sm">
@@ -300,6 +308,29 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
                 )}
               </dl>
             </div>
+
+            {/* Werbeanzeige */}
+            {lead.ad_name && (
+              <div className="mb-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3">
+                <h4 className="mb-1 text-sm font-semibold text-foreground">Werbeanzeige</h4>
+                <p className="text-sm">{lead.ad_name}</p>
+              </div>
+            )}
+
+            {/* Custom Fields */}
+            {lead.custom_fields && typeof lead.custom_fields === 'object' && Object.keys(lead.custom_fields as Record<string, unknown>).length > 0 && (
+              <div className="mb-4">
+                <h4 className="mb-2 text-sm font-semibold text-foreground">Zusätzliche Infos</h4>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  {Object.entries(lead.custom_fields as Record<string, string>).map(([key, val]) => val ? (
+                    <div key={key} className="contents">
+                      <dt className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</dt>
+                      <dd>{val}</dd>
+                    </div>
+                  ) : null)}
+                </dl>
+              </div>
+            )}
 
             {/* UTM / Campaign info */}
             {(lead.campaign || lead.utm_source || lead.utm_campaign) && (

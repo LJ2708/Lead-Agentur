@@ -220,6 +220,12 @@ function LeadCardContent({
         )}
       </div>
 
+      {lead.ad_name && (
+        <div className="text-[10px] text-muted-foreground/80 truncate" title={lead.ad_name}>
+          📢 {lead.ad_name}
+        </div>
+      )}
+
       {isAdmin && lead.berater?.profiles?.full_name && (
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <User className="h-3 w-3 shrink-0" />
