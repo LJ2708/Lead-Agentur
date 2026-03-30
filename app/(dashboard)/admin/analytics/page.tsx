@@ -206,7 +206,7 @@ export default function AdminAnalyticsPage() {
     // Fetch leads
     let leadsQuery = supabase
       .from("leads")
-      .select("id, status, source, berater_id, created_at, zugewiesen_am, erster_kontakt_am, termin_am, abschluss_am, sla_deadline, sla_status, accepted_at, campaign")
+      .select("id, status, source, berater_id, created_at, zugewiesen_am, erster_kontakt_am, termin_am, abschluss_am, sla_deadline, sla_status, accepted_at, ad_name")
       .order("created_at", { ascending: true })
     if (since) {
       leadsQuery = leadsQuery.gte("created_at", since)
@@ -416,7 +416,7 @@ export default function AdminAnalyticsPage() {
       // ---- Section 6: Werbeanzeigen-Performance ----
       const byCampaign: Record<string, { total: number; kontaktiert: number; termin: number; abschluss: number; verloren: number }> = {}
       for (const lead of leads) {
-        const camp = lead.campaign
+        const camp = lead.ad_name
         if (!camp) continue
         if (!byCampaign[camp]) byCampaign[camp] = { total: 0, kontaktiert: 0, termin: 0, abschluss: 0, verloren: 0 }
         const s = byCampaign[camp]
