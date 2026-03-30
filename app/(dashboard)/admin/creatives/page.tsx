@@ -246,14 +246,14 @@ function SingleAdFetchSection({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Globe className="h-5 w-5" />
-          Werbeanzeige verkn\u00FCpfen
+          Werbeanzeige verknüpfen
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <div className="flex-1">
             <Input
-              placeholder="Facebook Ad Library URL einf\u00FCgen..."
+              placeholder="Facebook Ad Library URL einfügen..."
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value)
@@ -334,7 +334,7 @@ function SingleAdFetchSection({
               <Label>Creative zuordnen</Label>
               <Select value={selectedCreativeId} onValueChange={setSelectedCreativeId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Creative ausw\u00E4hlen..." />
+                  <SelectValue placeholder="Creative auswählen..." />
                 </SelectTrigger>
                 <SelectContent>
                   {creatives.map((c) => (
@@ -486,7 +486,7 @@ function BulkImportSection({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1.5">
-          <Label>URLs einf\u00FCgen (eine pro Zeile)</Label>
+          <Label>URLs einfügen (eine pro Zeile)</Label>
           <Textarea
             placeholder={"https://www.facebook.com/ads/library/?id=...\nhttps://www.facebook.com/ads/library/?id=..."}
             value={urlsText}
@@ -692,7 +692,7 @@ function EditCreativeDialog({
     (file: File) => {
       const maxSize = 5 * 1024 * 1024
       if (file.size > maxSize) {
-        setError("Datei zu gro\u00DF (max. 5 MB)")
+        setError("Datei zu groß (max. 5 MB)")
         return
       }
 
@@ -944,7 +944,7 @@ function EditCreativeDialog({
                   className="font-medium text-primary underline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Datei ausw\u00E4hlen
+                  Datei auswählen
                 </button>
               </p>
               <p className="text-xs text-muted-foreground">
@@ -962,7 +962,7 @@ function EditCreativeDialog({
               />
               {uploadedFile && (
                 <p className="mt-1 text-xs font-medium text-green-600">
-                  Ausgew\u00E4hlt: {uploadedFile.name}
+                  Ausgewählt: {uploadedFile.name}
                 </p>
               )}
             </div>
@@ -1264,7 +1264,7 @@ export default function AdminCreativesPage() {
                           href={creative.facebook_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          title="In Ad Library \u00F6ffnen"
+                          title="In Ad Library öffnen"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
