@@ -27,7 +27,7 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
-type Period = "7d" | "30d" | "90d"
+type Period = "7d" | "30d" | "90d" | "all"
 type BeraterToggle = "absolut" | "prozentual"
 type BeraterPeriod = "heute" | "woche" | "monat"
 
@@ -65,6 +65,22 @@ interface HourlyData {
   hour: string
   count: number
 }
+
+interface AdPerformance {
+  name: string
+  total: number
+  kontaktiert: number
+  termin: number
+  abschluss: number
+  verloren: number
+  kontaktiertPct: number
+  terminPct: number
+  abschlussPct: number
+  verlorenPct: number
+  conversionRate: number
+}
+
+type AdSortKey = "name" | "total" | "kontaktiertPct" | "terminPct" | "abschlussPct" | "verlorenPct" | "conversionRate"
 
 interface TimeToContactData {
   date: string
@@ -114,14 +130,18 @@ function daysFromPeriod(period: Period): number {
     case "7d": return 7
     case "30d": return 30
     case "90d": return 90
+    case "all": return 3650
   }
 }
 
-function periodDate(period: Period): string {
+function periodDate(period: Period): string | null {
+  if (period === "all") return null
   const d = new Date()
   d.setDate(d.getDate() - daysFromPeriod(period))
   return d.toISOString()
 }
+
+const AD_FUNNEL_COLORS = ["#3B82F6", "#8B5CF6", "#14B8A6", "#22C55E"]
 
 // Deterministic mapping from lead status to a funnel stage index (-1 if not in funnel)
 const STATUS_TO_FUNNEL_INDEX: Record<string, number> = {}
@@ -172,6 +192,11 @@ export default function AdminAnalyticsPage() {
   const [breachesPerWeek, setBreachesPerWeek] = useState(0)
   const [beraterSla, setBeraterSla] = useState<BeraterSla[]>([])
 
+  // Section 6: Werbeanzeigen
+  const [adPerformance, setAdPerformance] = useState<AdPerformance[]>([])
+  const [adSortKey, setAdSortKey] = useState<AdSortKey>("total")
+  const [adSortDir, setAdSortDir] = useState<"asc" | "desc">("desc")
+
   const supabase = useMemo(() => createClient(), [])
 
   const fetchData = useCallback(async () => {
@@ -179,11 +204,14 @@ export default function AdminAnalyticsPage() {
     const since = periodDate(period)
 
     // Fetch leads
-    const { data: leads } = await supabase
+    let leadsQuery = supabase
       .from("leads")
-      .select("id, status, source, berater_id, created_at, zugewiesen_am, erster_kontakt_am, termin_am, abschluss_am, sla_deadline, sla_status, accepted_at")
-      .gte("created_at", since)
+      .select("id, status, source, berater_id, created_at, zugewiesen_am, erster_kontakt_am, termin_am, abschluss_am, sla_deadline, sla_status, accepted_at, campaign")
       .order("created_at", { ascending: true })
+    if (since) {
+      leadsQuery = leadsQuery.gte("created_at", since)
+    }
+    const { data: leads } = await leadsQuery
 
     // Fetch berater with profiles
     const { data: beraterList } = await supabase
@@ -384,6 +412,36 @@ export default function AdminAnalyticsPage() {
           }))
           .sort((a, b) => a.avgMinutes - b.avgMinutes)
       )
+
+      // ---- Section 6: Werbeanzeigen-Performance ----
+      const byCampaign: Record<string, { total: number; kontaktiert: number; termin: number; abschluss: number; verloren: number }> = {}
+      for (const lead of leads) {
+        const camp = lead.campaign
+        if (!camp) continue
+        if (!byCampaign[camp]) byCampaign[camp] = { total: 0, kontaktiert: 0, termin: 0, abschluss: 0, verloren: 0 }
+        const s = byCampaign[camp]
+        s.total++
+        const stage = PROGRESSIVE_STATUSES[lead.status]
+        if (stage !== undefined && stage >= 2) s.kontaktiert++
+        if (stage !== undefined && stage >= 4) s.termin++
+        if (stage !== undefined && stage >= 6) s.abschluss++
+        if (lead.status === "verloren") s.verloren++
+      }
+      setAdPerformance(
+        Object.entries(byCampaign).map(([name, d]) => ({
+          name,
+          total: d.total,
+          kontaktiert: d.kontaktiert,
+          termin: d.termin,
+          abschluss: d.abschluss,
+          verloren: d.verloren,
+          kontaktiertPct: d.total > 0 ? Math.round((d.kontaktiert / d.total) * 100) : 0,
+          terminPct: d.total > 0 ? Math.round((d.termin / d.total) * 100) : 0,
+          abschlussPct: d.total > 0 ? Math.round((d.abschluss / d.total) * 100) : 0,
+          verlorenPct: d.total > 0 ? Math.round((d.verloren / d.total) * 100) : 0,
+          conversionRate: d.total > 0 ? Math.round(((d.termin + d.abschluss) / d.total) * 100) : 0,
+        }))
+      )
     } else {
       setFunnelData([])
       setBeraterData([])
@@ -395,6 +453,7 @@ export default function AdminAnalyticsPage() {
       setAvgAcceptTime(0)
       setBreachesPerWeek(0)
       setBeraterSla([])
+      setAdPerformance([])
     }
 
     setLoading(false)
@@ -418,7 +477,7 @@ export default function AdminAnalyticsPage() {
           </p>
         </div>
         <div className="flex gap-1 rounded-lg border border-border p-1">
-          {(["7d", "30d", "90d"] as const).map((p) => (
+          {(["7d", "30d", "90d", "all"] as const).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -428,7 +487,7 @@ export default function AdminAnalyticsPage() {
                   : "text-muted-foreground hover:bg-muted"
               }`}
             >
-              {p === "7d" ? "7 Tage" : p === "30d" ? "30 Tage" : "90 Tage"}
+              {p === "7d" ? "7 Tage" : p === "30d" ? "30 Tage" : p === "90d" ? "90 Tage" : "Gesamt"}
             </button>
           ))}
         </div>
@@ -832,10 +891,261 @@ export default function AdminAnalyticsPage() {
         </CardContent>
       </Card>
 
-      {/* Section 6: Berater Activity Heatmap */}
+      {/* Section 6: Werbeanzeigen-Performance */}
+      {(() => {
+        const sortedAds = [...adPerformance].sort((a, b) => {
+          const aVal = a[adSortKey]
+          const bVal = b[adSortKey]
+          if (typeof aVal === "string" && typeof bVal === "string") {
+            return adSortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+          }
+          return adSortDir === "asc" ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number)
+        })
+        const barData = [...adPerformance].sort((a, b) => b.total - a.total)
+        const bestAd = [...adPerformance].sort((a, b) => b.conversionRate - a.conversionRate)[0]
+        const worstAd = [...adPerformance].sort((a, b) => b.verlorenPct - a.verlorenPct)[0]
+        const top5 = barData.slice(0, 5)
+        const funnelStages = ["Neu", "Kontakt", "Termin", "Abschluss"] as const
+        const toggleSort = (key: AdSortKey) => {
+          if (adSortKey === key) {
+            setAdSortDir(adSortDir === "asc" ? "desc" : "asc")
+          } else {
+            setAdSortKey(key)
+            setAdSortDir("desc")
+          }
+        }
+        const sortIndicator = (key: AdSortKey) => adSortKey === key ? (adSortDir === "asc" ? " \u2191" : " \u2193") : ""
+        const cellColor = (pct: number, invert?: boolean) => {
+          if (invert) {
+            if (pct >= 40) return "bg-red-100 text-red-800"
+            if (pct >= 20) return "bg-yellow-100 text-yellow-800"
+            return "bg-green-100 text-green-800"
+          }
+          if (pct >= 40) return "bg-green-100 text-green-800"
+          if (pct >= 20) return "bg-yellow-100 text-yellow-800"
+          return "bg-red-100 text-red-800"
+        }
+        const barColor = (convRate: number) => {
+          if (convRate >= 40) return "#22C55E"
+          if (convRate >= 20) return "#F59E0B"
+          return "#EF4444"
+        }
+
+        return (
+          <>
+            {/* Summary cards */}
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Anzahl Werbeanzeigen
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{loading ? "-" : adPerformance.length}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Beste Anzeige
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <p className="text-3xl font-bold">-</p>
+                  ) : bestAd ? (
+                    <div>
+                      <p className="truncate text-lg font-bold" title={bestAd.name}>{bestAd.name}</p>
+                      <p className="text-sm text-green-600">{bestAd.conversionRate}% Conversion</p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">Keine Daten</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Schlechteste Anzeige
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <p className="text-3xl font-bold">-</p>
+                  ) : worstAd ? (
+                    <div>
+                      <p className="truncate text-lg font-bold" title={worstAd.name}>{worstAd.name}</p>
+                      <p className="text-sm text-red-600">{worstAd.verlorenPct}% Verloren</p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">Keine Daten</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Bar chart: Leads pro Werbeanzeige */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Leads pro Werbeanzeige</CardTitle>
+                <CardDescription>Horizontale Balken, sortiert nach Anzahl, eingefärbt nach Conversion-Rate</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-[400px] w-full" />
+                ) : barData.length === 0 ? (
+                  <p className="py-16 text-center text-muted-foreground">Keine Werbeanzeigen-Daten vorhanden.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={Math.max(300, barData.length * 40)}>
+                    <BarChart data={barData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis type="number" tick={{ fontSize: 12 }} tickLine={false} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} tickLine={false} width={200} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "13px" }}
+                        formatter={(value: unknown) => [
+                          `${value} Leads`,
+                          "Leads",
+                        ]}
+                      />
+                      <Bar dataKey="total" name="Leads" radius={[0, 4, 4, 0]}>
+                        {barData.map((entry, index) => (
+                          <Cell key={index} fill={barColor(entry.conversionRate)} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Detailed Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance pro Anzeige</CardTitle>
+                <CardDescription>Klicke auf Spaltenüberschriften zum Sortieren</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-[300px] w-full" />
+                ) : sortedAds.length === 0 ? (
+                  <p className="py-16 text-center text-muted-foreground">Keine Werbeanzeigen-Daten vorhanden.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="cursor-pointer py-2 text-left font-medium hover:text-blue-600" onClick={() => toggleSort("name")}>
+                            Werbeanzeige{sortIndicator("name")}
+                          </th>
+                          <th className="cursor-pointer py-2 text-right font-medium hover:text-blue-600" onClick={() => toggleSort("total")}>
+                            Leads{sortIndicator("total")}
+                          </th>
+                          <th className="cursor-pointer py-2 text-right font-medium hover:text-blue-600" onClick={() => toggleSort("kontaktiertPct")}>
+                            Kontaktiert{sortIndicator("kontaktiertPct")}
+                          </th>
+                          <th className="cursor-pointer py-2 text-right font-medium hover:text-blue-600" onClick={() => toggleSort("terminPct")}>
+                            Termin{sortIndicator("terminPct")}
+                          </th>
+                          <th className="cursor-pointer py-2 text-right font-medium hover:text-blue-600" onClick={() => toggleSort("abschlussPct")}>
+                            Abschluss{sortIndicator("abschlussPct")}
+                          </th>
+                          <th className="cursor-pointer py-2 text-right font-medium hover:text-blue-600" onClick={() => toggleSort("verlorenPct")}>
+                            Verloren{sortIndicator("verlorenPct")}
+                          </th>
+                          <th className="cursor-pointer py-2 text-right font-medium hover:text-blue-600" onClick={() => toggleSort("conversionRate")}>
+                            Conversion{sortIndicator("conversionRate")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedAds.map((ad, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="max-w-[250px] truncate py-2 font-medium" title={ad.name}>{ad.name}</td>
+                            <td className="py-2 text-right">{ad.total}</td>
+                            <td className="py-2 text-right">
+                              <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${cellColor(ad.kontaktiertPct)}`}>
+                                {ad.kontaktiertPct}%
+                              </span>
+                            </td>
+                            <td className="py-2 text-right">
+                              <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${cellColor(ad.terminPct)}`}>
+                                {ad.terminPct}%
+                              </span>
+                            </td>
+                            <td className="py-2 text-right">
+                              <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${cellColor(ad.abschlussPct)}`}>
+                                {ad.abschlussPct}%
+                              </span>
+                            </td>
+                            <td className="py-2 text-right">
+                              <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${cellColor(ad.verlorenPct, true)}`}>
+                                {ad.verlorenPct}%
+                              </span>
+                            </td>
+                            <td className="py-2 text-right">
+                              <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${cellColor(ad.conversionRate)}`}>
+                                {ad.conversionRate}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Funnel per Top 5 Anzeigen */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Funnel der Top-5-Anzeigen</CardTitle>
+                <CardDescription>Neu &rarr; Kontakt &rarr; Termin &rarr; Abschluss pro Werbeanzeige</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-[350px] w-full" />
+                ) : top5.length === 0 ? (
+                  <p className="py-16 text-center text-muted-foreground">Keine Werbeanzeigen-Daten vorhanden.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={350}>
+                    <BarChart
+                      data={funnelStages.map((stage) => {
+                        const row: Record<string, string | number> = { stage }
+                        for (const ad of top5) {
+                          const val =
+                            stage === "Neu" ? ad.total
+                            : stage === "Kontakt" ? ad.kontaktiert
+                            : stage === "Termin" ? ad.termin
+                            : ad.abschluss
+                          row[ad.name] = val
+                        }
+                        return row
+                      })}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="stage" tick={{ fontSize: 12 }} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12 }} tickLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "13px" }} />
+                      <Legend wrapperStyle={{ fontSize: "11px" }} />
+                      {top5.map((ad, i) => (
+                        <Bar key={ad.name} dataKey={ad.name} fill={AD_FUNNEL_COLORS[i % AD_FUNNEL_COLORS.length]} radius={[4, 4, 0, 0]} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )
+      })()}
+
+      {/* Section 7: Berater Activity Heatmap */}
       <BeraterHeatmap />
 
-      {/* Section 7: Lead-Verteilung (Placeholder) */}
+      {/* Section 8: Lead-Verteilung (Placeholder) */}
       <LeadMapPlaceholder />
     </div>
   )
