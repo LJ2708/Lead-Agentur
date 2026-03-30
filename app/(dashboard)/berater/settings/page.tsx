@@ -270,61 +270,7 @@ export default function BeraterSettingsPage() {
 
           {/* Setter Addon */}
           <Separator />
-          <div className="rounded-lg border p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Setter-Service</h4>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {berater.setter_typ === "pool"
-                    ? "Ein Setter kontaktiert deine Leads vorab und qualifiziert sie. +10€ pro Lead."
-                    : "Ein Setter kontaktiert deine Leads telefonisch und qualifiziert sie vor, bevor sie an dich übergeben werden."}
-                </p>
-                {berater.setter_typ === "pool" && (
-                  <p className="text-sm font-medium text-green-600 mt-1">✓ Aktiv — +10€ pro Lead</p>
-                )}
-              </div>
-              <div className="shrink-0 ml-4">
-                {berater.setter_typ === "pool" ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50"
-                    onClick={async () => {
-                      const supabase = createClient()
-                      const { error } = await supabase
-                        .from("berater")
-                        .update({ setter_typ: "keiner" })
-                        .eq("id", berater.id)
-                      if (!error) {
-                        setBerater({ ...berater, setter_typ: "keiner" })
-                        toast.success("Setter-Service deaktiviert")
-                      }
-                    }}
-                  >
-                    Deaktivieren
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    className="bg-purple-600 hover:bg-purple-700"
-                    onClick={async () => {
-                      const supabase = createClient()
-                      const { error } = await supabase
-                        .from("berater")
-                        .update({ setter_typ: "pool" })
-                        .eq("id", berater.id)
-                      if (!error) {
-                        setBerater({ ...berater, setter_typ: "pool" })
-                        toast.success("Setter-Service aktiviert! +10€ pro Lead")
-                      }
-                    }}
-                  >
-                    Setter hinzubuchen (+10€/Lead)
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          <SetterAddonSection berater={berater} onUpdate={(updated) => setBerater({ ...berater, ...updated })} />
 
           <Separator />
 
@@ -472,4 +418,151 @@ function getSubscriptionLabel(status: string): {
     default:
       return { label: "Unbekannt", color: "bg-gray-100 text-gray-800" };
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function SetterAddonSection({ berater, onUpdate }: { berater: any; onUpdate: (data: Record<string, unknown>) => void }) {
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [action, setAction] = useState<"add" | "remove">("add")
+
+  const isActive = berater.setter_typ === "pool"
+  const preisProLead = berater.preis_pro_lead_cents / 100
+  const setterAufpreis = 10
+  const leadsProMonat = berater.leads_pro_monat
+  const currentMonthly = leadsProMonat * preisProLead
+  const newMonthly = isActive
+    ? leadsProMonat * preisProLead // removing setter
+    : leadsProMonat * (preisProLead + setterAufpreis) // adding setter
+  const diff = isActive ? -(leadsProMonat * setterAufpreis) : leadsProMonat * setterAufpreis
+
+  async function handleConfirm() {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/stripe/update-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: action === "add" ? "add_setter" : "remove_setter" }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        onUpdate({ setter_typ: data.setter_typ })
+        toast.success(
+          action === "add"
+            ? "Setter-Service aktiviert! Dein Abo wurde aktualisiert."
+            : "Setter-Service deaktiviert. Dein Abo wurde aktualisiert."
+        )
+      } else {
+        toast.error(data.error || "Fehler beim Aktualisieren")
+      }
+    } catch {
+      toast.error("Verbindungsfehler. Bitte erneut versuchen.")
+    }
+    setLoading(false)
+    setShowConfirm(false)
+  }
+
+  return (
+    <>
+      <div className="rounded-lg border p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h4 className="font-medium">Setter-Service</h4>
+            <p className="text-sm text-muted-foreground mt-1">
+              Ein Setter kontaktiert deine Leads telefonisch, qualifiziert sie und vereinbart Termine — bevor sie an dich übergeben werden.
+            </p>
+            {isActive ? (
+              <div className="mt-2 rounded-md bg-green-50 dark:bg-green-950/30 p-2.5">
+                <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                  ✓ Aktiv — +{setterAufpreis}€ pro Lead ({(leadsProMonat * setterAufpreis).toFixed(0)}€/Monat)
+                </p>
+              </div>
+            ) : (
+              <div className="mt-2 rounded-md bg-purple-50 dark:bg-purple-950/30 p-2.5">
+                <p className="text-sm text-purple-700 dark:text-purple-400">
+                  +{setterAufpreis}€ pro Lead · {leadsProMonat} Leads = <span className="font-medium">+{(leadsProMonat * setterAufpreis).toFixed(0)}€/Monat</span>
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="shrink-0 pt-1">
+            {isActive ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => { setAction("remove"); setShowConfirm(true) }}
+              >
+                Deaktivieren
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                onClick={() => { setAction("add"); setShowConfirm(true) }}
+              >
+                Setter hinzubuchen
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {action === "add" ? "Setter-Service hinzubuchen" : "Setter-Service deaktivieren"}
+            </DialogTitle>
+            <DialogDescription>
+              {action === "add"
+                ? "Der Setter-Service wird ab sofort aktiviert. Deine monatliche Rechnung wird entsprechend angepasst."
+                : "Der Setter-Service wird deaktiviert. Deine monatliche Rechnung wird reduziert."
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Aktuell</span>
+                <span className="font-medium">{currentMonthly.toFixed(0)}€/Monat</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {action === "add" ? "+ Setter-Service" : "– Setter-Service"}
+                </span>
+                <span className={action === "add" ? "text-purple-600 font-medium" : "text-green-600 font-medium"}>
+                  {diff > 0 ? "+" : ""}{diff.toFixed(0)}€/Monat
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between text-sm font-bold">
+                <span>Neuer Preis</span>
+                <span>{newMonthly.toFixed(0)}€/Monat</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Die Änderung wird anteilig auf deine nächste Rechnung angerechnet (Pro-rata).
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirm(false)} disabled={loading}>
+              Abbrechen
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={loading}
+              className={action === "add" ? "bg-purple-600 hover:bg-purple-700" : ""}
+            >
+              {loading ? "Wird aktualisiert..." : action === "add" ? "Kostenpflichtig buchen" : "Deaktivieren"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
