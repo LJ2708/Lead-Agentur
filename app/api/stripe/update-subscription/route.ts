@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
             : currentPrice?.product?.id
 
           if (productId) {
+            // Update subscription with immediate invoice
             await stripe.subscriptions.update(berater.stripe_subscription_id, {
               items: [{
                 id: itemId,
@@ -69,13 +70,24 @@ export async function POST(request: NextRequest) {
                 },
                 quantity: leadsProMonat,
               }],
-              proration_behavior: "create_prorations",
+              proration_behavior: "always_invoice", // Sofortige Rechnung
+              payment_behavior: "allow_incomplete",
               metadata: {
                 leads_pro_monat: String(leadsProMonat),
                 preis_pro_lead_cents: String(preisProLead),
                 hat_setter: String(addSetter),
               },
             })
+
+            // Sofort bezahlen: offene Rechnung finden und belasten
+            const invoices = await stripe.invoices.list({
+              customer: berater.stripe_customer_id!,
+              status: "draft",
+              limit: 1,
+            })
+            if (invoices.data.length > 0) {
+              await stripe.invoices.pay(invoices.data[0].id)
+            }
           }
         }
       } catch (stripeError) {

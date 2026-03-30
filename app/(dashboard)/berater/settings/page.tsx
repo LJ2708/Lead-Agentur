@@ -545,7 +545,9 @@ function SetterAddonSection({ berater, onUpdate }: { berater: any; onUpdate: (da
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Die Änderung wird anteilig auf deine nächste Rechnung angerechnet (Pro-rata).
+              {action === "add"
+                ? "Der anteilige Betrag für den Rest des Monats wird sofort berechnet."
+                : "Die Gutschrift wird mit deiner nächsten Rechnung verrechnet."}
             </p>
           </div>
 
