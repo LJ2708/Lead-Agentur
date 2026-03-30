@@ -86,11 +86,8 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
   const [activities, setActivities] = useState<Activity[]>([])
   const [loadingActivities, setLoadingActivities] = useState(false)
 
-  const leadName = `${lead.vorname ?? ""} ${lead.nachname ?? ""}`.trim() || "Unbekannt"
-
-  // Determine if lead needs acceptance (neu/zugewiesen, not yet accepted)
-  const needsAcceptance =
-    (lead.status === "neu" || lead.status === "zugewiesen") && !lead.accepted_at
+  const leadNameFull = `${lead.vorname ?? ""} ${lead.nachname ?? ""}`.trim() || "Unbekannt"
+  // leadName will be set after needsAcceptance check below
 
   // SLA
   const slaActive = lead.sla_status === "active" && lead.sla_deadline
@@ -141,6 +138,17 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _beraterId = beraterId
+
+  // Lead is "accepted" if accepted_at is set, or status is beyond zugewiesen/neu
+  const needsAcceptance = !lead.accepted_at && ["neu", "zugewiesen"].includes(lead.status)
+  const isAccepted = !needsAcceptance
+
+  // Mask contact details for unaccepted leads
+  const maskedPhone = needsAcceptance && lead.telefon ? lead.telefon.slice(0, 6) + "•••••" : lead.telefon
+  const maskedEmail = needsAcceptance && lead.email ? lead.email.split("@")[0].slice(0, 3) + "•••@" + lead.email.split("@")[1] : lead.email
+  const leadName = needsAcceptance
+    ? [lead.vorname, lead.nachname ? lead.nachname[0] + "." : ""].filter(Boolean).join(" ") || "Neuer Lead"
+    : leadNameFull
 
   return (
     <>
@@ -207,13 +215,13 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
             {lead.telefon && (
               <span className="flex items-center gap-1">
                 <Phone className="h-3 w-3" />
-                {lead.telefon}
+                {maskedPhone}
               </span>
             )}
             {lead.email && (
               <span className="flex items-center gap-1">
                 <Mail className="h-3 w-3" />
-                {lead.email}
+                {maskedEmail}
               </span>
             )}
             {lead.source && (
@@ -231,16 +239,23 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
             </span>
           </div>
 
-          {/* Row 2b: Ad Creative compact thumbnail */}
-          {lead.ad_name && (
+          {/* Row 2b: Ad Creative compact thumbnail (only after acceptance) */}
+          {isAccepted && lead.ad_name && (
             <div className="ml-9 mt-1 flex items-center gap-2 text-xs text-muted-foreground">
               <AdCreativePreview adName={lead.ad_name} compact />
               <span className="truncate">{lead.ad_name}</span>
             </div>
           )}
 
-          {/* Row 3: AI suggestion */}
-          <div className="mt-2.5 ml-9 flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
+          {/* Acceptance required hint */}
+          {needsAcceptance && (
+            <div className="ml-9 mt-2 rounded-md bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+              Nimm den Lead an, um alle Kontaktdaten und Details zu sehen.
+            </div>
+          )}
+
+          {/* Row 3: AI suggestion (only after acceptance) */}
+          {isAccepted && <div className="mt-2.5 ml-9 flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
             <div className="flex items-center gap-2 text-sm">
               <ArrowRight className="h-3.5 w-3.5 shrink-0 text-primary" />
               <span className="font-medium text-foreground">
@@ -250,7 +265,7 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
                 &mdash; {score.reasoning}
               </span>
             </div>
-          </div>
+          </div>}
 
           {/* Row 4: ActionBar or AcceptReject */}
           <div className="mt-2.5 ml-9">

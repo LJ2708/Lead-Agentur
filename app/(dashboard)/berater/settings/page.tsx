@@ -253,7 +253,7 @@ export default function BeraterSettingsPage() {
             <div>
               <p className="text-sm text-muted-foreground">Preis pro Lead</p>
               <p className="mt-1 font-medium">
-                {(berater.preis_pro_lead_cents / 100).toFixed(2)} &euro;
+                {(berater.preis_pro_lead_cents / 100).toFixed(2)} €
               </p>
             </div>
             <div>
