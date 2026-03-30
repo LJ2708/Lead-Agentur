@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Logo } from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -12,10 +13,7 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">
-          <span className="text-primary">Lead</span>
-          <span className="text-foreground">Solution</span>
-        </h1>
+        <Logo size="lg" />
         <p className="mt-2 text-sm text-muted-foreground">
           Manage your leads efficiently
         </p>

@@ -43,11 +43,11 @@ import {
   Bell,
   Code,
   UserCircle,
-  Users,
   Upload,
   Image,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Logo, LogoIcon } from "@/components/Logo";
 
 type Role = "admin" | "teamleiter" | "setter" | "berater";
 
@@ -226,11 +226,8 @@ export function Sidebar({ role }: SidebarProps) {
   }, [fetchNeuLeads]);
 
   const brandLink = (
-    <Link href="/" className="flex items-center gap-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-        <span className="text-sm font-bold text-white">LS</span>
-      </div>
-      <span className="text-lg font-semibold text-foreground">LeadSolution</span>
+    <Link href="/" className="flex items-center">
+      <Logo size="sm" />
     </Link>
   );
 
@@ -248,9 +245,7 @@ export function Sidebar({ role }: SidebarProps) {
           {!collapsed && brandLink}
           {collapsed && (
             <Link href="/" className="mx-auto flex items-center justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-                <span className="text-sm font-bold text-white">LS</span>
-              </div>
+              <LogoIcon />
             </Link>
           )}
         </div>
