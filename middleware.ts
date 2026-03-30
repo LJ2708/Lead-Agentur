@@ -5,16 +5,14 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const pathname = request.nextUrl.pathname
 
-  // Marketing domain: leadsolution.de
+  // Marketing domain: leadsolution.de (NOT localhost — localhost uses default behavior)
   const isMarketingDomain =
     hostname === 'leadsolution.de' ||
-    hostname === 'www.leadsolution.de' ||
-    hostname.includes('localhost:3000')
+    hostname === 'www.leadsolution.de'
 
   // Hub domain: hub.leadsolution.de
   const isHubDomain =
-    hostname === 'hub.leadsolution.de' ||
-    hostname.includes('localhost:3001')
+    hostname === 'hub.leadsolution.de'
 
   if (isMarketingDomain) {
     // Marketing pages: /, /impressum, /datenschutz, /agb
@@ -48,6 +46,6 @@ export const config = {
      * - api/seed* (seed endpoints)
      * - api/pricing/* (public pricing endpoints)
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/.*|api/cron/.*|api/seed.*|api/pricing/.*).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/.*|api/cron/.*|api/seed.*|api/pricing/.*|api/import/.*).*)",
   ],
 }
