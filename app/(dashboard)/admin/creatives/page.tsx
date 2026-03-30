@@ -989,6 +989,21 @@ function EditCreativeDialog({
                         </div>
                       )
                     }
+                    // Google Drive
+                    const driveMatch = previewUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+                    if (driveMatch) {
+                      return (
+                        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                          <iframe
+                            src={`https://drive.google.com/file/d/${driveMatch[1]}/preview`}
+                            title="Vorschau"
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                            className="absolute inset-0 h-full w-full"
+                          />
+                        </div>
+                      )
+                    }
                     return (
                       <video
                         src={previewUrl}
@@ -1003,7 +1018,10 @@ function EditCreativeDialog({
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={previewUrl}
+                    src={(() => {
+                      const dm = previewUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+                      return dm ? `https://drive.google.com/thumbnail?id=${dm[1]}&sz=w800` : previewUrl
+                    })()}
                     alt="Vorschau"
                     className="max-h-48 w-full object-contain"
                   />
