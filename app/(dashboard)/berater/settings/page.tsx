@@ -14,6 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { BeraterForm } from "@/components/forms/BeraterForm";
 import {
   User,
@@ -264,6 +265,64 @@ export default function BeraterSettingsPage() {
                   ? "Eigener Setter"
                   : "Kein Setter"}
               </p>
+            </div>
+          </div>
+
+          {/* Setter Addon */}
+          <Separator />
+          <div className="rounded-lg border p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium">Setter-Service</h4>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {berater.setter_typ === "pool"
+                    ? "Ein Setter kontaktiert deine Leads vorab und qualifiziert sie. +10€ pro Lead."
+                    : "Ein Setter kontaktiert deine Leads telefonisch und qualifiziert sie vor, bevor sie an dich übergeben werden."}
+                </p>
+                {berater.setter_typ === "pool" && (
+                  <p className="text-sm font-medium text-green-600 mt-1">✓ Aktiv — +10€ pro Lead</p>
+                )}
+              </div>
+              <div className="shrink-0 ml-4">
+                {berater.setter_typ === "pool" ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={async () => {
+                      const supabase = createClient()
+                      const { error } = await supabase
+                        .from("berater")
+                        .update({ setter_typ: "keiner" })
+                        .eq("id", berater.id)
+                      if (!error) {
+                        setBerater({ ...berater, setter_typ: "keiner" })
+                        toast.success("Setter-Service deaktiviert")
+                      }
+                    }}
+                  >
+                    Deaktivieren
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700"
+                    onClick={async () => {
+                      const supabase = createClient()
+                      const { error } = await supabase
+                        .from("berater")
+                        .update({ setter_typ: "pool" })
+                        .eq("id", berater.id)
+                      if (!error) {
+                        setBerater({ ...berater, setter_typ: "pool" })
+                        toast.success("Setter-Service aktiviert! +10€ pro Lead")
+                      }
+                    }}
+                  >
+                    Setter hinzubuchen (+10€/Lead)
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
