@@ -205,7 +205,7 @@ export function KPIDashboard() {
 
     setKpis([
       {
-        label: "MRR",
+        label: "Monatsumsatz",
         value: formatEuroCents(mrr),
         trend: mrrTrend.direction,
         trendPct: mrrTrend.pct,
@@ -226,21 +226,21 @@ export function KPIDashboard() {
         sparkline: makeSparkline(current.length, leadsTrend.direction === "up" ? 1 : -1),
       },
       {
-        label: "Conversion Rate",
+        label: "Abschlussrate",
         value: `${conversionRate}%`,
         trend: convTrend.direction,
         trendPct: convTrend.pct,
         sparkline: makeSparkline(conversionRate, convTrend.direction === "up" ? 1 : -1),
       },
       {
-        label: "\u00D8 Reaktionszeit",
+        label: "Ø Reaktionszeit",
         value: `${avgReaktionszeit} Min.`,
         trend: reaktionTrend.direction,
         trendPct: reaktionTrend.pct,
         sparkline: makeSparkline(avgReaktionszeit, reaktionTrend.direction === "up" ? -1 : 1),
       },
       {
-        label: "SLA-Quote",
+        label: "Kontaktiert in 30 Min.",
         value: `${slaQuote}%`,
         trend: slaTrend.direction,
         trendPct: slaTrend.pct,
@@ -254,7 +254,7 @@ export function KPIDashboard() {
         sparkline: makeSparkline(setterMarge / 100, 1),
       },
       {
-        label: "Churn Rate",
+        label: "Kündigungsrate",
         value: `${churnRate}%`,
         // For churn, lower is better
         trend: churnRate === 0 ? "up" : churnRate <= 5 ? "neutral" : "down",
