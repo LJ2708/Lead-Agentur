@@ -413,7 +413,20 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Section 4: Danger Zone */}
+        {/* Section 4: Benutzerverwaltung */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Benutzerverwaltung</CardTitle>
+            <CardDescription>Alle Benutzer, Rollen und Zugänge verwalten.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <a href="/admin/users" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              Benutzer verwalten →
+            </a>
+          </CardContent>
+        </Card>
+
+        {/* Section 5: Danger Zone */}
         <Card className="border-red-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
