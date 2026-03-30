@@ -566,6 +566,7 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
                 currentStatus={lead.status}
                 currentBeraterId={lead.berater_id}
                 beraterOptions={beraterOptions}
+                lead={lead}
               />
             </CardContent>
           </Card>

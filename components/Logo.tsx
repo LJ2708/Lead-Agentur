@@ -1,4 +1,3 @@
-import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 interface LogoProps {
@@ -18,13 +17,13 @@ export function Logo({ className, size = "md", showText = false }: LogoProps) {
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src="/logo.png"
         alt="leadsolution."
         width={width}
         height={height}
         className="h-auto dark:invert"
-        priority
       />
       {showText && (
         <span className="text-xs text-muted-foreground font-medium tracking-wide">

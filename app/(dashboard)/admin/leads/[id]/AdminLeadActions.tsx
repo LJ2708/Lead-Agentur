@@ -24,18 +24,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, ArrowRightLeft, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, ArrowRightLeft, RefreshCw, Trash2, Merge } from "lucide-react";
 import { getStatusLabel } from "@/lib/utils";
+import { LeadMergeDialog } from "@/components/dashboard/LeadMergeDialog";
+import type { Database } from "@/types/database";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
 interface AdminLeadActionsProps {
   leadId: string;
   currentStatus: string;
   currentBeraterId: string | null;
   beraterOptions: { id: string; name: string }[];
+  lead?: Lead;
 }
 
 const ALL_STATUSES = [
@@ -62,6 +67,7 @@ export function AdminLeadActions({
   currentStatus,
   currentBeraterId,
   beraterOptions,
+  lead,
 }: AdminLeadActionsProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -71,6 +77,7 @@ export function AdminLeadActions({
   const [statusLoading, setStatusLoading] = useState(false);
   const [reassignLoading, setReassignLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showMergeDialog, setShowMergeDialog] = useState(false);
 
   async function handleStatusChange() {
     if (newStatus === currentStatus) return;
@@ -230,6 +237,34 @@ export function AdminLeadActions({
           Neu zuweisen
         </Button>
       </div>
+
+      <Separator />
+
+      {/* Merge */}
+      <div className="space-y-2">
+        <Label className="text-sm">Duplikat zusammenführen</Label>
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full"
+          onClick={() => setShowMergeDialog(true)}
+          disabled={!lead}
+        >
+          <Merge className="mr-2 h-4 w-4" />
+          Zusammenführen
+        </Button>
+      </div>
+
+      {showMergeDialog && lead && (
+        <LeadMergeDialog
+          primaryLead={lead}
+          onClose={() => setShowMergeDialog(false)}
+          onMerged={() => {
+            setShowMergeDialog(false);
+            router.refresh();
+          }}
+        />
+      )}
 
       <Separator />
 

@@ -15,7 +15,7 @@ export default function AuthLayout({
       <div className="mb-8 text-center">
         <Logo size="lg" />
         <p className="mt-2 text-sm text-muted-foreground">
-          Manage your leads efficiently
+          Dein Vertriebssystem für planbare Termine
         </p>
       </div>
       <div className="w-full max-w-md">{children}</div>

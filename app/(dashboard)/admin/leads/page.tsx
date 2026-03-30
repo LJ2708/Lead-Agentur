@@ -16,12 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, X, ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { Search, X, ChevronLeft, ChevronRight, Plus, Copy } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ExportButton } from "@/components/dashboard/ExportButton"
 import { ImportLeadsDialog } from "@/components/dashboard/ImportLeadsDialog"
 import { SavedFilters } from "@/components/dashboard/SavedFilters"
+import { DuplicateFinderDialog } from "@/components/dashboard/DuplicateFinderDialog"
 import type { Database } from "@/types/database"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -59,6 +60,7 @@ export default function AdminLeadsPage() {
   const [dateTo, setDateTo] = useState("")
   const [page, setPage] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
+  const [showDuplicates, setShowDuplicates] = useState(false)
 
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -177,6 +179,10 @@ export default function AdminLeadsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setShowDuplicates(true)}>
+            <Copy className="mr-1 h-4 w-4" />
+            Duplikate finden
+          </Button>
           <ImportLeadsDialog onImported={fetchLeads} />
           <ExportButton
             filters={{
@@ -373,6 +379,13 @@ export default function AdminLeadsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {showDuplicates && (
+        <DuplicateFinderDialog
+          onClose={() => setShowDuplicates(false)}
+          onLeadsChanged={fetchLeads}
+        />
+      )}
     </div>
   )
 }

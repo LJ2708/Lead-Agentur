@@ -36,14 +36,18 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message);
+        if (error.message === "Invalid login credentials") {
+          setError("Ungültige Anmeldedaten. Bitte prüfe E-Mail und Passwort.");
+        } else {
+          setError(error.message);
+        }
         return;
       }
 
       router.push("/");
       router.refresh();
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      setError("Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.");
     } finally {
       setLoading(false);
     }
@@ -52,9 +56,9 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Sign in to your account</CardTitle>
+        <CardTitle className="text-xl">Anmelden</CardTitle>
         <CardDescription>
-          Enter your email and password to continue
+          Melde dich mit deiner E-Mail und deinem Passwort an
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -66,11 +70,11 @@ export default function LoginPage() {
           )}
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-Mail</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="deine@email.de"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -80,11 +84,11 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Passwort</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Your password"
+              placeholder="Dein Passwort"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -99,18 +103,18 @@ export default function LoginPage() {
             className="mt-2 w-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          Noch kein Konto?{" "}
           <Link
             href="/register"
             className="font-medium text-[#2563EB] hover:underline"
           >
-            Create one
+            Jetzt registrieren
           </Link>
         </p>
       </CardFooter>
