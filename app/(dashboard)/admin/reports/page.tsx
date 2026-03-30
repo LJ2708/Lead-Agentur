@@ -26,7 +26,7 @@ import { ReportExportButton } from "@/components/dashboard/ReportExportButton"
 // Types
 // ---------------------------------------------------------------------------
 
-type Period = "7d" | "30d" | "90d"
+type Period = "7d" | "30d" | "90d" | "all"
 
 interface DailyLeadData {
   date: string
@@ -99,7 +99,8 @@ const CHART_TOOLTIP_STYLE = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function periodDate(period: Period): string {
+function periodDate(period: Period): string | null {
+  if (period === "all") return null
   const d = new Date()
   switch (period) {
     case "7d": d.setDate(d.getDate() - 7); break
@@ -139,11 +140,12 @@ export default function AdminReportsPage() {
     const since = periodDate(period)
 
     // -- Leads --
-    const { data: leads } = await supabase
+    let leadsQuery = supabase
       .from("leads")
       .select("created_at, status")
-      .gte("created_at", since)
       .order("created_at", { ascending: true })
+    if (since) leadsQuery = leadsQuery.gte("created_at", since)
+    const { data: leads } = await leadsQuery
 
     if (leads) {
       setTotalLeads(leads.length)
@@ -220,13 +222,14 @@ export default function AdminReportsPage() {
     }
 
     // -- Response times --
-    const { data: activities } = await supabase
+    let actQuery = supabase
       .from("lead_activities")
       .select("created_at, type, lead_id")
       .in("type", ["zuweisung", "anruf", "email", "whatsapp"])
-      .gte("created_at", since)
       .order("created_at", { ascending: true })
       .limit(200)
+    if (since) actQuery = actQuery.gte("created_at", since)
+    const { data: activities } = await actQuery
 
     if (activities && activities.length > 0) {
       const byDate: Record<string, { total: number; count: number }> = {}
@@ -256,11 +259,12 @@ export default function AdminReportsPage() {
     }
 
     // -- Revenue --
-    const { data: zahlungen } = await supabase
+    let revQuery = supabase
       .from("zahlungen")
       .select("betrag_cents, created_at")
-      .gte("created_at", since)
       .order("created_at", { ascending: true })
+    if (since) revQuery = revQuery.gte("created_at", since)
+    const { data: zahlungen } = await revQuery
 
     if (zahlungen && zahlungen.length > 0) {
       const totalCents = zahlungen.reduce((a, z) => a + z.betrag_cents, 0)
@@ -305,9 +309,9 @@ export default function AdminReportsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <ReportExportButton period={period} />
+          <ReportExportButton period={period === "all" ? "90d" : period} />
           <div className="flex gap-1 rounded-lg border border-border p-1">
-            {(["7d", "30d", "90d"] as const).map((p) => (
+            {(["7d", "30d", "90d", "all"] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
@@ -317,7 +321,7 @@ export default function AdminReportsPage() {
                     : "text-muted-foreground hover:bg-muted"
                 }`}
               >
-                {p === "7d" ? "7 Tage" : p === "30d" ? "30 Tage" : "90 Tage"}
+                {p === "7d" ? "7 Tage" : p === "30d" ? "30 Tage" : p === "90d" ? "90 Tage" : "Gesamt"}
               </button>
             ))}
           </div>
