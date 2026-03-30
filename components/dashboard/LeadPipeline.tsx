@@ -14,7 +14,8 @@ import {
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { cn, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Database } from "@/types/database"
-import { User, Mail, Phone, Clock, GripVertical } from "lucide-react"
+import { User, Mail, Phone, Clock, GripVertical, ExternalLink } from "lucide-react"
+import Link from "next/link"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
   berater?: {
@@ -226,9 +227,20 @@ function LeadCardContent({
         </div>
       )}
 
-      <div className="flex items-center gap-1 text-[11px] text-muted-foreground/70">
-        <Clock className="h-3 w-3 shrink-0" />
-        <span>{getTimeAgo(lead.created_at)}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground/70">
+          <Clock className="h-3 w-3 shrink-0" />
+          <span>{getTimeAgo(lead.created_at)}</span>
+        </div>
+        <Link
+          href={`/admin/leads/${lead.id}`}
+          className="text-[11px] text-primary hover:underline flex items-center gap-0.5"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          Details
+          <ExternalLink className="h-2.5 w-2.5" />
+        </Link>
       </div>
     </div>
   )
