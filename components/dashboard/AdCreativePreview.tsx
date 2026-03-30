@@ -105,20 +105,32 @@ function MediaDisplay({
     )
   }
 
-  // Image: Google Drive → convert to direct thumbnail URL
-  const driveId = getGoogleDriveId(mediaUrl)
-  const imgSrc = driveId
-    ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800`
-    : mediaUrl
+  // Google Drive links (any media type) → always use iframe embed for best quality
+  const driveIdImg = getGoogleDriveId(mediaUrl)
+  if (driveIdImg) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-lg" style={{ maxHeight }}>
+        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+          <iframe
+            src={`https://drive.google.com/file/d/${driveIdImg}/preview`}
+            title={creative.name}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            className="absolute inset-0 h-full w-full rounded-lg"
+          />
+        </div>
+      </div>
+    )
+  }
 
-  // Image
+  // Image: direct URL
   return (
     <div className="relative w-full overflow-hidden rounded-lg" style={{ maxHeight }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={imgSrc}
+        src={mediaUrl}
         alt={creative.name}
-        className="w-full rounded-lg object-contain"
+        className="w-full rounded-lg object-cover"
         style={{ maxHeight }}
       />
     </div>
