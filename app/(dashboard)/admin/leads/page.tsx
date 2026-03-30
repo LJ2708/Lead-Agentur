@@ -50,7 +50,9 @@ const PAGE_SIZE = 20
 
 export default function AdminLeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
+  const [allLeads, setAllLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("tabelle")
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("alle")
   const [dateFrom, setDateFrom] = useState("")
@@ -108,9 +110,24 @@ export default function AdminLeadsPage() {
     setLoading(false)
   }, [page, search, statusFilter, dateFrom, dateTo, supabase])
 
+  const fetchAllLeads = useCallback(async () => {
+    const { data } = await supabase
+      .from("leads")
+      .select("*, berater:berater_id(id, profiles:profile_id(full_name))")
+      .order("created_at", { ascending: false })
+      .limit(1000)
+    setAllLeads((data as Lead[]) ?? [])
+  }, [supabase])
+
   useEffect(() => {
     fetchLeads()
   }, [fetchLeads])
+
+  useEffect(() => {
+    if (activeTab === "pipeline") {
+      fetchAllLeads()
+    }
+  }, [activeTab, fetchAllLeads])
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -285,7 +302,7 @@ export default function AdminLeadsPage() {
       </Card>
 
       {/* View Tabs */}
-      <Tabs defaultValue="tabelle">
+      <Tabs defaultValue="tabelle" onValueChange={(v) => setActiveTab(v)}>
         <TabsList>
           <TabsTrigger value="tabelle">Tabelle</TabsTrigger>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
@@ -346,8 +363,11 @@ export default function AdminLeadsPage() {
             </div>
           ) : (
             <LeadPipeline
-              leads={leads}
-              onStatusChange={handleStatusChange}
+              leads={allLeads.length > 0 ? allLeads : leads}
+              onStatusChange={async (leadId, newStatus) => {
+                await handleStatusChange(leadId, newStatus)
+                fetchAllLeads()
+              }}
               isAdmin
             />
           )}
