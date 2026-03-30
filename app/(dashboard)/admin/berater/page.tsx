@@ -1,9 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -15,7 +23,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatEuro } from "@/lib/utils"
 import { cn } from "@/lib/utils"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, ArrowUpDown, Search } from "lucide-react"
 import { InviteBeraterDialog } from "@/components/dashboard/InviteBeraterDialog"
 import type { Database } from "@/types/database"
 
@@ -50,20 +58,30 @@ const STATUS_LABELS: Record<string, string> = {
   pending: "Ausstehend",
 }
 
+type SortKey = "name" | "leads_pro_monat" | "preis" | "status" | "kontingent" | "lead_count" | "umsatz"
+type SortDir = "asc" | "desc"
+
 export default function AdminBeraterPage() {
   const [beraterList, setBeraterList] = useState<BeraterWithProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("alle")
+  const [sortKey, setSortKey] = useState<SortKey>("lead_count")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
 
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = useMemo(
+    () =>
+      createBrowserClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
   )
 
   useEffect(() => {
     async function fetchBerater() {
       setLoading(true)
 
-      // Fetch berater with joined profiles
       const { data: berater, error } = await supabase
         .from("berater")
         .select(
@@ -77,7 +95,6 @@ export default function AdminBeraterPage() {
         return
       }
 
-      // For each berater, count their leads and sum revenue
       const enriched: BeraterWithProfile[] = await Promise.all(
         (berater ?? []).map(async (b) => {
           const { count: leadCount } = await supabase
@@ -108,7 +125,89 @@ export default function AdminBeraterPage() {
     }
 
     fetchBerater()
-  }, [supabase])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc")
+    } else {
+      setSortKey(key)
+      setSortDir("desc")
+    }
+  }
+
+  const filtered = useMemo(() => {
+    let list = [...beraterList]
+
+    // Search
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(
+        (b) =>
+          (b.profiles?.full_name ?? "").toLowerCase().includes(q) ||
+          (b.profiles?.email ?? "").toLowerCase().includes(q)
+      )
+    }
+
+    // Status filter
+    if (statusFilter !== "alle") {
+      list = list.filter((b) => b.status === statusFilter)
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case "name":
+          cmp = (a.profiles?.full_name ?? "").localeCompare(b.profiles?.full_name ?? "")
+          break
+        case "leads_pro_monat":
+          cmp = a.leads_pro_monat - b.leads_pro_monat
+          break
+        case "preis":
+          cmp = a.preis_pro_lead_cents - b.preis_pro_lead_cents
+          break
+        case "status":
+          cmp = a.status.localeCompare(b.status)
+          break
+        case "kontingent":
+          cmp = (a.leads_kontingent > 0 ? a.leads_geliefert / a.leads_kontingent : 0) -
+                (b.leads_kontingent > 0 ? b.leads_geliefert / b.leads_kontingent : 0)
+          break
+        case "lead_count":
+          cmp = a.lead_count - b.lead_count
+          break
+        case "umsatz":
+          cmp = a.umsatz_gesamt_cents - b.umsatz_gesamt_cents
+          break
+      }
+      return sortDir === "asc" ? cmp : -cmp
+    })
+
+    return list
+  }, [beraterList, search, statusFilter, sortKey, sortDir])
+
+  // Stats
+  const totalBerater = beraterList.length
+  const aktiveBerater = beraterList.filter((b) => b.status === "aktiv").length
+  const totalLeads = beraterList.reduce((s, b) => s + b.lead_count, 0)
+
+  function SortHeader({ label, sortKeyName }: { label: string; sortKeyName: SortKey }) {
+    return (
+      <button
+        type="button"
+        className={cn(
+          "inline-flex items-center gap-1 hover:text-foreground transition-colors",
+          sortKey === sortKeyName ? "text-foreground" : "text-muted-foreground"
+        )}
+        onClick={() => handleSort(sortKeyName)}
+      >
+        {label}
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -118,119 +217,144 @@ export default function AdminBeraterPage() {
             Berater-Verwaltung
           </h1>
           <p className="text-muted-foreground">
-            Alle Berater und deren Kontingente verwalten.
+            {totalBerater} Berater ({aktiveBerater} aktiv) · {totalLeads} Leads gesamt
           </p>
         </div>
         <InviteBeraterDialog />
       </div>
 
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Name oder E-Mail suchen..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alle">Alle Status</SelectItem>
+                <SelectItem value="aktiv">Aktiv</SelectItem>
+                <SelectItem value="pausiert">Pausiert</SelectItem>
+                <SelectItem value="inaktiv">Inaktiv</SelectItem>
+                <SelectItem value="pending">Ausstehend</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
       <Card>
         <CardContent className="pt-0">
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-3 pt-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>E-Mail</TableHead>
-                  <TableHead>Leads/Monat</TableHead>
-                  <TableHead>Preis/Lead</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Kontingent</TableHead>
-                  <TableHead>Leads gesamt</TableHead>
-                  <TableHead>Umsatz</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {beraterList.length === 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell
-                      colSpan={9}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Keine Berater gefunden.
-                    </TableCell>
+                    <TableHead><SortHeader label="Name" sortKeyName="name" /></TableHead>
+                    <TableHead className="hidden md:table-cell">E-Mail</TableHead>
+                    <TableHead><SortHeader label="Leads/Mon" sortKeyName="leads_pro_monat" /></TableHead>
+                    <TableHead><SortHeader label="€/Lead" sortKeyName="preis" /></TableHead>
+                    <TableHead><SortHeader label="Status" sortKeyName="status" /></TableHead>
+                    <TableHead><SortHeader label="Kontingent" sortKeyName="kontingent" /></TableHead>
+                    <TableHead><SortHeader label="Leads" sortKeyName="lead_count" /></TableHead>
+                    <TableHead><SortHeader label="Umsatz" sortKeyName="umsatz" /></TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
-                ) : (
-                  beraterList.map((berater) => {
-                    const profile = berater.profiles
-                    const kontingent = berater.leads_kontingent ?? 0
-                    const verwendet = berater.leads_geliefert ?? 0
-                    const prozent =
-                      kontingent > 0
-                        ? Math.round((verwendet / kontingent) * 100)
-                        : 0
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={9}
+                        className="h-24 text-center text-muted-foreground"
+                      >
+                        Keine Berater gefunden.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filtered.map((berater) => {
+                      const profile = berater.profiles
+                      const kontingent = berater.leads_kontingent ?? 0
+                      const verwendet = berater.leads_geliefert ?? 0
+                      const prozent =
+                        kontingent > 0
+                          ? Math.round((verwendet / kontingent) * 100)
+                          : 0
 
-                    return (
-                      <TableRow key={berater.id}>
-                        <TableCell className="font-medium">
-                          {profile
-                            ? (profile.full_name ?? "-")
-                            : "-"}
-                        </TableCell>
-                        <TableCell>{profile?.email ?? "-"}</TableCell>
-                        <TableCell>
-                          {berater.leads_pro_monat}
-                        </TableCell>
-                        <TableCell>
-                          {formatEuro(berater.preis_pro_lead_cents)}
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={cn(
-                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                              STATUS_COLORS[berater.status] ??
-                                "bg-gray-100 text-gray-700"
-                            )}
-                          >
-                            {STATUS_LABELS[berater.status] ?? berater.status}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">
-                              {verwendet}/{kontingent}
+                      return (
+                        <TableRow key={berater.id}>
+                          <TableCell className="font-medium">
+                            {profile?.full_name ?? "-"}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
+                            {profile?.email ?? "-"}
+                          </TableCell>
+                          <TableCell>{berater.leads_pro_monat}</TableCell>
+                          <TableCell>{formatEuro(berater.preis_pro_lead_cents)}</TableCell>
+                          <TableCell>
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                                STATUS_COLORS[berater.status] ?? "bg-gray-100 text-gray-700"
+                              )}
+                            >
+                              {STATUS_LABELS[berater.status] ?? berater.status}
                             </span>
-                            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-gray-200">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full",
-                                  prozent >= 90
-                                    ? "bg-red-500"
-                                    : prozent >= 70
-                                      ? "bg-yellow-500"
-                                      : "bg-emerald-500"
-                                )}
-                                style={{
-                                  width: `${Math.min(100, prozent)}%`,
-                                }}
-                              />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm tabular-nums">
+                                {verwendet}/{kontingent}
+                              </span>
+                              <div className="h-1.5 w-12 overflow-hidden rounded-full bg-muted">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full",
+                                    prozent >= 90
+                                      ? "bg-red-500"
+                                      : prozent >= 70
+                                        ? "bg-yellow-500"
+                                        : "bg-emerald-500"
+                                  )}
+                                  style={{ width: `${Math.min(100, prozent)}%` }}
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{berater.lead_count}</TableCell>
-                        <TableCell>{formatEuro(berater.umsatz_gesamt_cents)}</TableCell>
-                        <TableCell>
-                          <Link
-                            href={`/admin/berater/${berater.id}`}
-                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            Details
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
+                          </TableCell>
+                          <TableCell className="tabular-nums font-medium">{berater.lead_count}</TableCell>
+                          <TableCell className="tabular-nums">{formatEuro(berater.umsatz_gesamt_cents)}</TableCell>
+                          <TableCell>
+                            <Link
+                              href={`/admin/berater/${berater.id}`}
+                              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                            >
+                              Details
+                              <ExternalLink className="h-3 w-3" />
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
