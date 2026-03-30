@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_creatives: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          media_type: string
+          media_url: string | null
+          thumbnail_url: string | null
+          supabase_path: string | null
+          is_active: boolean
+          leads_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          media_type?: string
+          media_url?: string | null
+          thumbnail_url?: string | null
+          supabase_path?: string | null
+          is_active?: boolean
+          leads_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          media_type?: string
+          media_url?: string | null
+          thumbnail_url?: string | null
+          supabase_path?: string | null
+          is_active?: boolean
+          leads_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_pakete: {
         Row: {
           id: string

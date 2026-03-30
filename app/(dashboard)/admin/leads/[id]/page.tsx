@@ -27,6 +27,7 @@ import {
   Tag,
 } from "lucide-react";
 import Link from "next/link";
+import { AdCreativePreview } from "@/components/dashboard/AdCreativePreview";
 import { AdminLeadActions } from "./AdminLeadActions";
 
 // ---------------------------------------------------------------------------
@@ -321,6 +322,18 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
                         </div>
                       )}
                     </div>
+                  </div>
+                </>
+              )}
+              {/* Werbeanzeige Creative */}
+              {lead.ad_name && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Werbeanzeige
+                    </p>
+                    <AdCreativePreview adName={lead.ad_name} />
                   </div>
                 </>
               )}

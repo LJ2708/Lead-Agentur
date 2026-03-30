@@ -45,6 +45,7 @@ import {
   UserCircle,
   Users,
   Upload,
+  Image,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -76,6 +77,7 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Templates", href: "/admin/templates", icon: MailOpen },
     { label: "Automation", href: "/admin/automation", icon: RefreshCw },
     { label: "API Docs", href: "/admin/api-docs", icon: Code },
+    { label: "Werbeanzeigen", href: "/admin/creatives", icon: Image },
     { label: "Datenimport", href: "/admin/import", icon: Upload },
     { label: "System", href: "/admin/system", icon: Server },
     { label: "Benachrichtigungen", href: "/notifications", icon: Bell },

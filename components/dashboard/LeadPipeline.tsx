@@ -15,6 +15,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { cn, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Database } from "@/types/database"
 import { User, Mail, Phone, Clock, GripVertical, ExternalLink } from "lucide-react"
+import { AdCreativePreview } from "@/components/dashboard/AdCreativePreview"
 import Link from "next/link"
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"] & {
@@ -221,8 +222,9 @@ function LeadCardContent({
       </div>
 
       {lead.ad_name && (
-        <div className="text-[10px] text-muted-foreground/80 truncate" title={lead.ad_name}>
-          📢 {lead.ad_name}
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/80 truncate" title={lead.ad_name}>
+          <AdCreativePreview adName={lead.ad_name} compact />
+          <span className="truncate">{lead.ad_name}</span>
         </div>
       )}
 

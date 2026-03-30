@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils"
 import type { LeadScore } from "@/lib/scoring/lead-score"
 import { formatTimeAgo } from "@/lib/scoring/lead-score"
 import { PriorityFlag } from "@/components/dashboard/PriorityFlag"
+import { AdCreativePreview } from "@/components/dashboard/AdCreativePreview"
 import type { Tables } from "@/types/database"
 
 type Activity = Tables<"lead_activities">
@@ -230,10 +231,10 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
             </span>
           </div>
 
-          {/* Row 2b: Ad Creative */}
+          {/* Row 2b: Ad Creative compact thumbnail */}
           {lead.ad_name && (
-            <div className="ml-9 mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="font-medium">Anzeige:</span>
+            <div className="ml-9 mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+              <AdCreativePreview adName={lead.ad_name} compact />
               <span className="truncate">{lead.ad_name}</span>
             </div>
           )}
@@ -311,9 +312,8 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
 
             {/* Werbeanzeige */}
             {lead.ad_name && (
-              <div className="mb-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3">
-                <h4 className="mb-1 text-sm font-semibold text-foreground">Werbeanzeige</h4>
-                <p className="text-sm">{lead.ad_name}</p>
+              <div className="mb-4">
+                <AdCreativePreview adName={lead.ad_name} />
               </div>
             )}
 
