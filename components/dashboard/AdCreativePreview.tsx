@@ -23,6 +23,17 @@ function getYouTubeId(url: string): string | null {
   return match ? match[1] : null
 }
 
+function getGoogleDriveId(url: string): string | null {
+  // Handles: drive.google.com/file/d/{ID}/view, drive.google.com/file/d/{ID}/preview, etc.
+  const match = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+  return match ? match[1] : null
+}
+
+function getGoogleDriveEmbedUrl(url: string): string | null {
+  const id = getGoogleDriveId(url)
+  return id ? `https://drive.google.com/file/d/${id}/preview` : null
+}
+
 function MediaDisplay({
   creative,
   maxHeight,
@@ -60,6 +71,24 @@ function MediaDisplay({
       )
     }
 
+    // Video: Google Drive
+    const driveEmbed = getGoogleDriveEmbedUrl(mediaUrl)
+    if (driveEmbed) {
+      return (
+        <div className="relative w-full overflow-hidden rounded-lg" style={{ maxHeight }}>
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              src={driveEmbed}
+              title={creative.name}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full rounded-lg"
+            />
+          </div>
+        </div>
+      )
+    }
+
     // Video: direct URL
     return (
       <div className="relative w-full overflow-hidden rounded-lg" style={{ maxHeight }}>
@@ -76,12 +105,18 @@ function MediaDisplay({
     )
   }
 
+  // Image: Google Drive → convert to direct thumbnail URL
+  const driveId = getGoogleDriveId(mediaUrl)
+  const imgSrc = driveId
+    ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800`
+    : mediaUrl
+
   // Image
   return (
     <div className="relative w-full overflow-hidden rounded-lg" style={{ maxHeight }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={mediaUrl}
+        src={imgSrc}
         alt={creative.name}
         className="w-full rounded-lg object-contain"
         style={{ maxHeight }}
