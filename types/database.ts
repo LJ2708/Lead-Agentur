@@ -20,6 +20,9 @@ export type Database = {
           supabase_path: string | null
           is_active: boolean
           leads_count: number
+          facebook_ad_id: string | null
+          facebook_url: string | null
+          ad_text: string | null
           created_at: string
           updated_at: string
         }
@@ -33,6 +36,9 @@ export type Database = {
           supabase_path?: string | null
           is_active?: boolean
           leads_count?: number
+          facebook_ad_id?: string | null
+          facebook_url?: string | null
+          ad_text?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -46,6 +52,9 @@ export type Database = {
           supabase_path?: string | null
           is_active?: boolean
           leads_count?: number
+          facebook_ad_id?: string | null
+          facebook_url?: string | null
+          ad_text?: string | null
           created_at?: string
           updated_at?: string
         }

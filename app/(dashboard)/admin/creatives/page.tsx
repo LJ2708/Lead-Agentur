@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadCreativeFile } from "@/lib/storage/upload"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +16,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
   Image as ImageIcon,
   Video,
   Upload,
@@ -26,8 +41,14 @@ import {
   Link as LinkIcon,
   FileUp,
   Users,
+  ExternalLink,
+  CheckCircle2,
+  XCircle,
+  Globe,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { extractAdId } from "@/lib/ads/facebook-fetcher"
+import type { FacebookAdInfo } from "@/lib/ads/facebook-fetcher"
 import type { Tables } from "@/types/database"
 
 type AdCreative = Tables<"ad_creatives">
@@ -41,6 +62,23 @@ function getYouTubeId(url: string): string | null {
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   )
   return match ? match[1] : null
+}
+
+function isFacebookAdUrl(url: string): boolean {
+  return /facebook\.com\/ads\/library\/?\?/.test(url) && extractAdId(url) !== null
+}
+
+async function fetchAdFromApi(url: string): Promise<{ data?: FacebookAdInfo; error?: string }> {
+  const res = await fetch("/api/ads/fetch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  })
+  const json = await res.json()
+  if (!res.ok) {
+    return { error: json.error ?? "Unbekannter Fehler" }
+  }
+  return { data: json.data }
 }
 
 // ---------------------------------------------------------------------------
@@ -123,6 +161,467 @@ function CardMediaPreview({ creative }: { creative: AdCreative }) {
 }
 
 // ---------------------------------------------------------------------------
+// Single Ad Fetch Section
+// ---------------------------------------------------------------------------
+
+function SingleAdFetchSection({
+  creatives,
+  onSaved,
+}: {
+  creatives: AdCreative[]
+  onSaved: () => void
+}) {
+  const [url, setUrl] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [fetchedInfo, setFetchedInfo] = useState<FacebookAdInfo | null>(null)
+  const [selectedCreativeId, setSelectedCreativeId] = useState<string>("")
+  const [saving, setSaving] = useState(false)
+
+  const detectedAdId = url ? extractAdId(url) : null
+
+  const handleFetch = async () => {
+    if (!url.trim()) return
+    setLoading(true)
+    setError(null)
+    setFetchedInfo(null)
+
+    const result = await fetchAdFromApi(url.trim())
+    if (result.error) {
+      setError(result.error)
+    } else if (result.data) {
+      setFetchedInfo(result.data)
+      // Auto-match: find a creative whose name matches the title
+      if (result.data.title) {
+        const titleLower = result.data.title.toLowerCase()
+        const match = creatives.find(
+          (c) =>
+            c.name.toLowerCase().includes(titleLower) ||
+            titleLower.includes(c.name.toLowerCase())
+        )
+        if (match) {
+          setSelectedCreativeId(match.id)
+        }
+      }
+    }
+    setLoading(false)
+  }
+
+  const handleSave = async () => {
+    if (!selectedCreativeId || !fetchedInfo) return
+    setSaving(true)
+    setError(null)
+
+    const supabase = createClient()
+    const updateData: Record<string, string | null> = {
+      facebook_ad_id: fetchedInfo.adId,
+      facebook_url: fetchedInfo.pageUrl,
+    }
+
+    if (fetchedInfo.imageUrl) {
+      updateData.media_url = fetchedInfo.imageUrl
+    }
+    if (fetchedInfo.description) {
+      updateData.ad_text = fetchedInfo.description
+    }
+
+    const { error: updateError } = await supabase
+      .from("ad_creatives")
+      .update(updateData)
+      .eq("id", selectedCreativeId)
+
+    if (updateError) {
+      setError("Speichern fehlgeschlagen: " + updateError.message)
+    } else {
+      setUrl("")
+      setFetchedInfo(null)
+      setSelectedCreativeId("")
+      onSaved()
+    }
+    setSaving(false)
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Globe className="h-5 w-5" />
+          Werbeanzeige verkn\u00FCpfen
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Input
+              placeholder="Facebook Ad Library URL einf\u00FCgen..."
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value)
+                setError(null)
+                setFetchedInfo(null)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleFetch()
+              }}
+            />
+            {detectedAdId && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Erkannte Ad-ID: <span className="font-mono">{detectedAdId}</span>
+              </p>
+            )}
+          </div>
+          <Button
+            onClick={handleFetch}
+            disabled={loading || !url.trim() || !detectedAdId}
+          >
+            {loading ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <ExternalLink className="mr-1.5 h-4 w-4" />
+            )}
+            Laden
+          </Button>
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
+
+        {fetchedInfo && (
+          <div className="space-y-4 rounded-lg border p-4">
+            <p className="text-sm font-medium">Vorschau der geladenen Daten:</p>
+            <div className="flex gap-4">
+              {fetchedInfo.imageUrl ? (
+                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg border bg-muted/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={fetchedInfo.imageUrl}
+                    alt="Anzeigenvorschau"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg border bg-muted/20">
+                  <ImageOff className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1 space-y-1">
+                {fetchedInfo.title && (
+                  <p className="truncate text-sm font-semibold">{fetchedInfo.title}</p>
+                )}
+                {fetchedInfo.description && (
+                  <p className="line-clamp-2 text-xs text-muted-foreground">
+                    {fetchedInfo.description}
+                  </p>
+                )}
+                {fetchedInfo.pageName && (
+                  <p className="text-xs text-muted-foreground">
+                    Seite: {fetchedInfo.pageName}
+                  </p>
+                )}
+                <p className="font-mono text-xs text-muted-foreground">
+                  Ad-ID: {fetchedInfo.adId}
+                </p>
+                {!fetchedInfo.imageUrl && !fetchedInfo.title && (
+                  <p className="text-xs text-amber-600">
+                    Konnte nicht automatisch geladen werden. Bitte Bild manuell hochladen.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Creative zuordnen</Label>
+              <Select value={selectedCreativeId} onValueChange={setSelectedCreativeId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Creative ausw\u00E4hlen..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {creatives.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSave}
+                disabled={saving || !selectedCreativeId}
+              >
+                {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+                Speichern
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Bulk Import Section
+// ---------------------------------------------------------------------------
+
+interface BulkResult {
+  url: string
+  status: "success" | "error"
+  info: FacebookAdInfo | null
+  error?: string
+  assignedCreativeId?: string
+}
+
+function BulkImportSection({
+  creatives,
+  onSaved,
+}: {
+  creatives: AdCreative[]
+  onSaved: () => void
+}) {
+  const [urlsText, setUrlsText] = useState("")
+  const [processing, setProcessing] = useState(false)
+  const [results, setResults] = useState<BulkResult[]>([])
+  const [progress, setProgress] = useState({ current: 0, total: 0 })
+  const [saving, setSaving] = useState(false)
+
+  const handleBulkFetch = async () => {
+    const urls = urlsText
+      .split("\n")
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0 && isFacebookAdUrl(u))
+
+    if (urls.length === 0) return
+
+    setProcessing(true)
+    setResults([])
+    setProgress({ current: 0, total: urls.length })
+
+    const newResults: BulkResult[] = []
+
+    for (let i = 0; i < urls.length; i++) {
+      setProgress({ current: i + 1, total: urls.length })
+      const result = await fetchAdFromApi(urls[i])
+
+      let assignedCreativeId: string | undefined
+      // Auto-match by title
+      if (result.data?.title) {
+        const titleLower = result.data.title.toLowerCase()
+        const match = creatives.find(
+          (c) =>
+            c.name.toLowerCase().includes(titleLower) ||
+            titleLower.includes(c.name.toLowerCase())
+        )
+        if (match) assignedCreativeId = match.id
+      }
+
+      newResults.push({
+        url: urls[i],
+        status: result.error ? "error" : "success",
+        info: result.data ?? null,
+        error: result.error,
+        assignedCreativeId,
+      })
+    }
+
+    setResults(newResults)
+    setProcessing(false)
+  }
+
+  const updateAssignment = (index: number, creativeId: string) => {
+    setResults((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], assignedCreativeId: creativeId }
+      return updated
+    })
+  }
+
+  const handleBulkSave = async () => {
+    const toSave = results.filter(
+      (r) => r.status === "success" && r.info && r.assignedCreativeId
+    )
+    if (toSave.length === 0) return
+
+    setSaving(true)
+    const supabase = createClient()
+
+    for (const item of toSave) {
+      if (!item.info || !item.assignedCreativeId) continue
+
+      const updateData: Record<string, string | null> = {
+        facebook_ad_id: item.info.adId,
+        facebook_url: item.info.pageUrl,
+      }
+      if (item.info.imageUrl) {
+        updateData.media_url = item.info.imageUrl
+      }
+      if (item.info.description) {
+        updateData.ad_text = item.info.description
+      }
+
+      await supabase
+        .from("ad_creatives")
+        .update(updateData)
+        .eq("id", item.assignedCreativeId)
+    }
+
+    setSaving(false)
+    setResults([])
+    setUrlsText("")
+    onSaved()
+  }
+
+  const successCount = results.filter((r) => r.status === "success").length
+  const assignedCount = results.filter((r) => r.assignedCreativeId).length
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <FileUp className="h-5 w-5" />
+          Massenimport
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-1.5">
+          <Label>URLs einf\u00FCgen (eine pro Zeile)</Label>
+          <Textarea
+            placeholder={"https://www.facebook.com/ads/library/?id=...\nhttps://www.facebook.com/ads/library/?id=..."}
+            value={urlsText}
+            onChange={(e) => setUrlsText(e.target.value)}
+            rows={4}
+            disabled={processing}
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleBulkFetch}
+            disabled={processing || !urlsText.trim()}
+          >
+            {processing ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <ExternalLink className="mr-1.5 h-4 w-4" />
+            )}
+            Alle laden
+          </Button>
+          {processing && (
+            <span className="text-sm text-muted-foreground">
+              {progress.current} / {progress.total} verarbeitet...
+            </span>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {processing && progress.total > 0 && (
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{
+                width: `${(progress.current / progress.total) * 100}%`,
+              }}
+            />
+          </div>
+        )}
+
+        {/* Results table */}
+        {results.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {successCount} von {results.length} erfolgreich geladen
+              {assignedCount > 0 && ` \u2014 ${assignedCount} zugeordnet`}
+            </p>
+
+            <div className="max-h-[400px] overflow-auto rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">Status</TableHead>
+                    <TableHead>Vorschau</TableHead>
+                    <TableHead>Ad-ID</TableHead>
+                    <TableHead>Zuordnung</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {results.map((result, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        {result.status === "success" ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {result.info?.imageUrl ? (
+                          <div className="h-10 w-10 overflow-hidden rounded border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={result.info.imageUrl}
+                              alt="Vorschau"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : result.status === "error" ? (
+                          <span className="text-xs text-red-500">Fehler</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Kein Bild</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono text-xs">
+                          {result.info?.adId ?? extractAdId(result.url) ?? "\u2014"}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {result.status === "success" ? (
+                          <Select
+                            value={result.assignedCreativeId ?? ""}
+                            onValueChange={(val) => updateAssignment(index, val)}
+                          >
+                            <SelectTrigger className="h-8 w-48 text-xs">
+                              <SelectValue placeholder="Zuordnen..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {creatives.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-xs text-red-500">
+                            {result.error ?? "Fehler"}
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleBulkSave}
+                disabled={saving || assignedCount === 0}
+              >
+                {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+                {assignedCount} Zuordnung{assignedCount !== 1 ? "en" : ""} speichern
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Upload / Edit Dialog
 // ---------------------------------------------------------------------------
 
@@ -143,9 +642,12 @@ function EditCreativeDialog({
   )
   const [mediaUrl, setMediaUrl] = useState(creative.media_url ?? "")
   const [thumbnailUrl, setThumbnailUrl] = useState(creative.thumbnail_url ?? "")
+  const [facebookUrl, setFacebookUrl] = useState(creative.facebook_url ?? "")
+  const [adText, setAdText] = useState(creative.ad_text ?? "")
   const [uploadMode, setUploadMode] = useState<"url" | "file">("url")
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [fbFetching, setFbFetching] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(creative.media_url ?? null)
   const [error, setError] = useState<string | null>(null)
@@ -157,16 +659,40 @@ function EditCreativeDialog({
     setMediaType((creative.media_type as "image" | "video") ?? "image")
     setMediaUrl(creative.media_url ?? "")
     setThumbnailUrl(creative.thumbnail_url ?? "")
+    setFacebookUrl(creative.facebook_url ?? "")
+    setAdText(creative.ad_text ?? "")
     setPreviewUrl(creative.media_url ?? null)
     setUploadedFile(null)
     setError(null)
   }, [creative])
 
+  const handleFacebookUrlBlur = async () => {
+    const trimmed = facebookUrl.trim()
+    if (!trimmed || !isFacebookAdUrl(trimmed)) return
+
+    setFbFetching(true)
+    const result = await fetchAdFromApi(trimmed)
+    setFbFetching(false)
+
+    if (result.data) {
+      if (result.data.imageUrl && !mediaUrl) {
+        setMediaUrl(result.data.imageUrl)
+        setPreviewUrl(result.data.imageUrl)
+      }
+      if (result.data.description && !adText) {
+        setAdText(result.data.description)
+      }
+      if (result.data.title && !description) {
+        setDescription(result.data.title)
+      }
+    }
+  }
+
   const handleFileSelect = useCallback(
     (file: File) => {
       const maxSize = 5 * 1024 * 1024
       if (file.size > maxSize) {
-        setError("Datei zu groß (max. 5 MB)")
+        setError("Datei zu gro\u00DF (max. 5 MB)")
         return
       }
 
@@ -213,6 +739,8 @@ function EditCreativeDialog({
         finalMediaUrl = publicUrl
       }
 
+      const fbAdId = facebookUrl ? extractAdId(facebookUrl) : null
+
       const supabase = createClient()
       const { error: updateError } = await supabase
         .from("ad_creatives")
@@ -222,6 +750,9 @@ function EditCreativeDialog({
           media_url: finalMediaUrl || null,
           thumbnail_url: thumbnailUrl || null,
           supabase_path: uploadMode === "file" && uploadedFile ? `creatives/${uploadedFile.name}` : creative.supabase_path,
+          facebook_url: facebookUrl || null,
+          facebook_ad_id: fbAdId,
+          ad_text: adText || null,
         })
         .eq("id", creative.id)
 
@@ -242,7 +773,7 @@ function EditCreativeDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Creative bearbeiten</DialogTitle>
         </DialogHeader>
@@ -252,6 +783,48 @@ function EditCreativeDialog({
           <div className="space-y-1.5">
             <Label>Name</Label>
             <Input value={creative.name} readOnly className="bg-muted/50" />
+          </div>
+
+          {/* Facebook Ad Library URL */}
+          <div className="space-y-1.5">
+            <Label htmlFor="facebook-url">
+              <span className="flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5" />
+                Facebook Ad Library URL
+              </span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="facebook-url"
+                type="url"
+                value={facebookUrl}
+                onChange={(e) => setFacebookUrl(e.target.value)}
+                onBlur={handleFacebookUrlBlur}
+                placeholder="https://www.facebook.com/ads/library/?id=..."
+              />
+              {fbFetching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            {facebookUrl && extractAdId(facebookUrl) && (
+              <p className="text-xs text-muted-foreground">
+                Ad-ID: <span className="font-mono">{extractAdId(facebookUrl)}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Ad Text */}
+          <div className="space-y-1.5">
+            <Label htmlFor="ad-text">Anzeigentext (optional)</Label>
+            <Textarea
+              id="ad-text"
+              value={adText}
+              onChange={(e) => setAdText(e.target.value)}
+              placeholder="Text der Facebook-Anzeige..."
+              rows={2}
+            />
           </div>
 
           {/* Description */}
@@ -371,7 +944,7 @@ function EditCreativeDialog({
                   className="font-medium text-primary underline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Datei auswählen
+                  Datei ausw\u00E4hlen
                 </button>
               </p>
               <p className="text-xs text-muted-foreground">
@@ -389,7 +962,7 @@ function EditCreativeDialog({
               />
               {uploadedFile && (
                 <p className="mt-1 text-xs font-medium text-green-600">
-                  Ausgewählt: {uploadedFile.name}
+                  Ausgew\u00E4hlt: {uploadedFile.name}
                 </p>
               )}
             </div>
@@ -602,6 +1175,12 @@ export default function AdminCreativesPage() {
         </div>
       </div>
 
+      {/* Single Ad Fetch */}
+      <SingleAdFetchSection creatives={creatives} onSaved={handleSaved} />
+
+      {/* Bulk Import */}
+      <BulkImportSection creatives={creatives} onSaved={handleSaved} />
+
       {/* Grid */}
       {creatives.length === 0 ? (
         <Card className="p-12">
@@ -633,12 +1212,20 @@ export default function AdminCreativesPage() {
                       </p>
                     )}
                   </div>
-                  <Badge
-                    variant={creative.media_type === "video" ? "default" : "secondary"}
-                    className="shrink-0 text-[10px]"
-                  >
-                    {creative.media_type === "video" ? "Video" : "Bild"}
-                  </Badge>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {creative.facebook_ad_id && (
+                      <Badge variant="outline" className="text-[10px]">
+                        <Globe className="mr-1 h-3 w-3" />
+                        FB
+                      </Badge>
+                    )}
+                    <Badge
+                      variant={creative.media_type === "video" ? "default" : "secondary"}
+                      className="text-[10px]"
+                    >
+                      {creative.media_type === "video" ? "Video" : "Bild"}
+                    </Badge>
+                  </div>
                 </div>
 
                 <div className="mt-3 flex items-center justify-between">
@@ -647,24 +1234,43 @@ export default function AdminCreativesPage() {
                     <span>{creative.leads_count} Leads</span>
                   </div>
 
-                  <Button
-                    type="button"
-                    variant={creative.media_url ? "outline" : "default"}
-                    size="sm"
-                    onClick={() => setEditCreative(creative)}
-                  >
-                    {creative.media_url ? (
-                      <>
-                        <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                        Bearbeiten
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-1.5 h-3.5 w-3.5" />
-                        Medien hochladen
-                      </>
+                  <div className="flex items-center gap-1.5">
+                    {creative.facebook_url && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                      >
+                        <a
+                          href={creative.facebook_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="In Ad Library \u00F6ffnen"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </Button>
                     )}
-                  </Button>
+                    <Button
+                      type="button"
+                      variant={creative.media_url ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => setEditCreative(creative)}
+                    >
+                      {creative.media_url ? (
+                        <>
+                          <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                          Bearbeiten
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-1.5 h-3.5 w-3.5" />
+                          Medien hochladen
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
