@@ -45,6 +45,7 @@ import {
   UserCircle,
   Upload,
   Image,
+  Megaphone,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo, LogoIcon } from "@/components/Logo";
@@ -62,13 +63,14 @@ const navItemsByRole: Record<Role, NavItem[]> = {
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Leads", href: "/admin/leads", icon: FileText },
     { label: "Berater", href: "/admin/berater", icon: UserCheck },
+    { label: "Outreach", href: "/admin/outreach", icon: Megaphone },
     { label: "Setter", href: "/admin/setter", icon: Headphones },
     { label: "Pricing", href: "/admin/pricing", icon: SlidersHorizontal },
     { label: "Nachkauf", href: "/admin/nachkauf", icon: ShoppingCart },
     { label: "Budget", href: "/admin/budget", icon: Wallet },
     { label: "Routing", href: "/admin/routing", icon: GitBranch },
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
-    { label: "Aktivit\u00e4ten", href: "/admin/activity", icon: Activity },
+    { label: "Aktivitäten", href: "/admin/activity", icon: Activity },
     { label: "Analytics", href: "/admin/analytics", icon: PieChart },
     { label: "Performance", href: "/admin/performance", icon: Trophy },
     { label: "Audit Log", href: "/admin/audit", icon: ScrollText },

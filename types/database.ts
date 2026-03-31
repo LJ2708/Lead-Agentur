@@ -1073,6 +1073,167 @@ export type Database = {
           },
         ]
       }
+      outreach_prospects: {
+        Row: {
+          id: string
+          full_name: string
+          company: string | null
+          position: string | null
+          linkedin_url: string | null
+          email: string | null
+          phone: string | null
+          city: string | null
+          notes: string | null
+          source: string | null
+          status: string
+          lost_reason: string | null
+          next_followup_at: string | null
+          last_contacted_at: string | null
+          contact_count: number
+          assigned_to: string | null
+          tags: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          company?: string | null
+          position?: string | null
+          linkedin_url?: string | null
+          email?: string | null
+          phone?: string | null
+          city?: string | null
+          notes?: string | null
+          source?: string | null
+          status?: string
+          lost_reason?: string | null
+          next_followup_at?: string | null
+          last_contacted_at?: string | null
+          contact_count?: number
+          assigned_to?: string | null
+          tags?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          company?: string | null
+          position?: string | null
+          linkedin_url?: string | null
+          email?: string | null
+          phone?: string | null
+          city?: string | null
+          notes?: string | null
+          source?: string | null
+          status?: string
+          lost_reason?: string | null
+          next_followup_at?: string | null
+          last_contacted_at?: string | null
+          contact_count?: number
+          assigned_to?: string | null
+          tags?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_prospects_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outreach_activities: {
+        Row: {
+          id: string
+          prospect_id: string
+          type: string
+          title: string
+          description: string | null
+          template_used: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          prospect_id: string
+          type: string
+          title: string
+          description?: string | null
+          template_used?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          prospect_id?: string
+          type?: string
+          title?: string
+          description?: string | null
+          template_used?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_activities_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "outreach_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outreach_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outreach_templates: {
+        Row: {
+          id: string
+          name: string
+          type: string
+          subject: string | null
+          body: string
+          variables: string[]
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: string
+          subject?: string | null
+          body: string
+          variables?: string[]
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: string
+          subject?: string | null
+          body?: string
+          variables?: string[]
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           id: string
