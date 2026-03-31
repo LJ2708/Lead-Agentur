@@ -37,7 +37,9 @@ import {
   ExternalLink,
   ArrowUpDown,
   Link2,
+  UserSearch,
 } from "lucide-react";
+import Link from "next/link";
 import { OutreachStats } from "@/components/outreach/OutreachStats";
 import { ProspectDialog } from "@/components/outreach/ProspectDialog";
 import { MessageComposer } from "@/components/outreach/MessageComposer";
@@ -239,6 +241,12 @@ export default function OutreachPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Outreach</h1>
         <div className="flex gap-2">
+          <Link href="/admin/outreach/finder">
+            <Button variant="outline">
+              <UserSearch className="mr-2 h-4 w-4" />
+              Prospects finden
+            </Button>
+          </Link>
           <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
             <Upload className="mr-2 h-4 w-4" />
             CSV Import
