@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { calcGesamtpreis } from "@/lib/pricing/calculator"
 
-const LEAD_MARKS = [10, 15, 20, 25, 30, 40, 50]
+const LEAD_MARKS = [10, 15, 20, 25, 30, 35, 40, 45, 50]
 
 export default function PricingConfigurator() {
   const [leads, setLeads] = useState(20)
