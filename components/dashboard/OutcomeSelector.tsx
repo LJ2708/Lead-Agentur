@@ -32,6 +32,35 @@ type ContactOutcome =
   | "not_interested"
   | "appointment"
 
+type NotReachedReason =
+  | "mailbox"
+  | "besetzt"
+  | "keine_antwort"
+  | "falsche_nummer"
+  | "aufgelegt"
+  | "nicht_verfuegbar"
+  | "spaeter_nochmal"
+  | "nummer_nicht_vergeben"
+  | "anrufbeantworter"
+  | "besetzt_rueckruf"
+  | "ungueltig"
+  | "sonstiges"
+
+const NOT_REACHED_REASONS: { key: NotReachedReason; label: string }[] = [
+  { key: "mailbox", label: "Mailbox" },
+  { key: "besetzt", label: "Besetzt" },
+  { key: "keine_antwort", label: "Keine Antwort" },
+  { key: "falsche_nummer", label: "Falsche Nummer" },
+  { key: "aufgelegt", label: "Aufgelegt" },
+  { key: "nicht_verfuegbar", label: "Nicht verf\u00fcgbar" },
+  { key: "spaeter_nochmal", label: "Sp\u00e4ter nochmal" },
+  { key: "nummer_nicht_vergeben", label: "Nummer nicht vergeben" },
+  { key: "anrufbeantworter", label: "Anrufbeantworter" },
+  { key: "besetzt_rueckruf", label: "Besetzt / R\u00fcckruf" },
+  { key: "ungueltig", label: "Ung\u00fcltig" },
+  { key: "sonstiges", label: "Sonstiges" },
+]
+
 interface OutcomeOption {
   key: ContactOutcome
   label: string
@@ -97,6 +126,7 @@ export function OutcomeSelector({
   onComplete,
 }: OutcomeSelectorProps) {
   const [selected, setSelected] = useState<ContactOutcome | null>(null)
+  const [notReachedReason, setNotReachedReason] = useState<NotReachedReason | null>(null)
   const [note, setNote] = useState("")
   const [callbackAt, setCallbackAt] = useState("")
   const [terminAt, setTerminAt] = useState("")
@@ -115,6 +145,7 @@ export function OutcomeSelector({
     try {
       const body: Record<string, string> = { outcome: selected }
       if (note.trim()) body.note = note.trim()
+      if (selected === "not_reached" && notReachedReason) body.not_reached_reason = notReachedReason
       if (selected === "callback" && callbackAt) body.callback_at = new Date(callbackAt).toISOString()
       if (selected === "appointment" && terminAt) body.termin_at = new Date(terminAt).toISOString()
 
@@ -133,6 +164,7 @@ export function OutcomeSelector({
 
       // Reset state
       setSelected(null)
+      setNotReachedReason(null)
       setNote("")
       setCallbackAt("")
       setTerminAt("")
@@ -148,6 +180,7 @@ export function OutcomeSelector({
 
   const handleReset = useCallback(() => {
     setSelected(null)
+    setNotReachedReason(null)
     setNote("")
     setCallbackAt("")
     setTerminAt("")
@@ -189,6 +222,31 @@ export function OutcomeSelector({
                 </button>
               ))}
             </div>
+
+            {/* Not-reached reason selector */}
+            {selected === "not_reached" && (
+              <div className="mt-4">
+                <Label className="text-sm font-medium">Grund</Label>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {NOT_REACHED_REASONS.map((reason) => (
+                    <button
+                      key={reason.key}
+                      type="button"
+                      onClick={() => setNotReachedReason(reason.key)}
+                      disabled={submitting}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-xs font-medium transition-all",
+                        notReachedReason === reason.key
+                          ? "border-orange-500 bg-orange-50 text-orange-800 ring-1 ring-orange-500"
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      {reason.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Date/Time picker for callback or appointment */}
             {selectedOption?.needsDateTime === "callback" && (
@@ -256,7 +314,7 @@ export function OutcomeSelector({
 
               <Button
                 onClick={handleSubmit}
-                disabled={!selected || submitting}
+                disabled={!selected || (selected === "not_reached" && !notReachedReason) || submitting}
                 className="min-w-[140px]"
               >
                 {submitting ? (
