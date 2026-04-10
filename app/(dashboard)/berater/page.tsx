@@ -68,23 +68,8 @@ export default async function BeraterDashboardPage() {
 
   const slaActive = leads.filter((l) => l.sla_status === "active").length;
 
-  // Termine diese Woche
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-  startOfWeek.setHours(0, 0, 0, 0);
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  const { data: termineWoche } = await supabase
-    .from("termine")
-    .select("id")
-    .eq("berater_id", berater.id)
-    .gte("datum", startOfWeek.toISOString())
-    .lte("datum", endOfWeek.toISOString());
-
-  const termineCount = termineWoche?.length ?? 0;
+  // Termine: count leads with status "termin"
+  const termineCount = leads.filter((l) => l.status === "termin").length;
 
   const kontingent = berater.leads_kontingent;
   const geliefert = berater.leads_geliefert;
