@@ -209,11 +209,11 @@ export function KPIDashboard() {
     if (DEMO_MODE) {
       setKpis([
         {
-          label: "Monatsumsatz",
-          value: formatEuroCents(2490000), // 24.900 EUR
+          label: "Gesamtumsatz",
+          value: formatEuroCents(18720000), // 187.200 EUR
           trend: "up",
           trendPct: 23,
-          sparkline: [165, 180, 195, 205, 220, 235, 249],
+          sparkline: [95, 110, 125, 140, 155, 170, 187],
         },
         {
           label: "Aktive Berater",
@@ -249,20 +249,6 @@ export function KPIDashboard() {
           trend: "up",
           trendPct: 8,
           sparkline: [82, 85, 87, 89, 91, 93, 94],
-        },
-        {
-          label: "Setter-Marge",
-          value: formatEuroCents(164000), // 1.640 EUR
-          trend: "up",
-          trendPct: 15,
-          sparkline: [95, 105, 120, 130, 140, 155, 164],
-        },
-        {
-          label: "K\u00FCndigungsrate",
-          value: "2%",
-          trend: "up",
-          trendPct: 0,
-          sparkline: [5, 4, 4, 3, 3, 2, 2],
         },
         {
           label: "\u00D8 Abschlusswert",
