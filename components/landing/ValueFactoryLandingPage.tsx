@@ -5,7 +5,6 @@ import {
   Headphones,
   LayoutDashboard,
   Shield,
-  Lock,
   ArrowRight,
   CheckCircle,
   ChevronDown,
