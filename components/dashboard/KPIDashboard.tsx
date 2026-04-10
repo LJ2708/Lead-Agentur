@@ -210,10 +210,10 @@ export function KPIDashboard() {
       setKpis([
         {
           label: "Gesamtumsatz",
-          value: formatEuroCents(18720000), // 187.200 EUR
+          value: formatEuroCents(48750000), // 487.500 EUR
           trend: "up",
           trendPct: 23,
-          sparkline: [95, 110, 125, 140, 155, 170, 187],
+          sparkline: [310, 340, 370, 400, 430, 460, 487],
         },
         {
           label: "Aktive Berater",
