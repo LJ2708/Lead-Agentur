@@ -20,10 +20,11 @@ export default function PartnerPricingConfigurator() {
 
   const preisProLead = (pricing.preisProLead / 100).toFixed(0)
   const normalPreisProLead = Number(preisProLead) + NORMAL_PRICE_OFFSET
-  const monatspreis = (pricing.monatspreis / 100).toFixed(0)
-  const normalMonatspreis = Number(monatspreis) + NORMAL_PRICE_OFFSET * pricing.leads
+  // Base monthly price (without setter)
+  const baseMonatspreis = (pricing.preisProLead * pricing.leads) / 100
+  const normalMonatspreis = baseMonatspreis + NORMAL_PRICE_OFFSET * pricing.leads
   const setterAufpreis = (pricing.setterProLead / 100).toFixed(0)
-  const totalMitSetter = (pricing.monatspreis / 100).toFixed(0)
+  const totalMitSetter = baseMonatspreis + (pricing.setterProLead / 100) * pricing.leads
   const ersparnisVsNormal = NORMAL_PRICE_OFFSET * pricing.leads
 
   return (
@@ -126,11 +127,11 @@ export default function PartnerPricingConfigurator() {
             <p className="text-sm text-[#111113]/60 mt-3">
               Gesamt:{" "}
               <span className="line-through text-[#111113]/30 mr-1">{normalMonatspreis}&euro;</span>
-              <span className="font-semibold text-[#111113]">{monatspreis}&euro;</span>/Monat
+              <span className="font-semibold text-[#111113]">{baseMonatspreis}&euro;</span>/Monat
             </p>
             {hatSetter && (
               <p className="text-sm text-[#111113]/60 mt-1">
-                +{setterAufpreis}&euro; Setter/Lead = <span className="font-semibold text-[#111113]">{totalMitSetter}&euro;</span>/Monat
+                +{setterAufpreis}&euro;/Lead Setter = <span className="font-semibold text-[#111113]">{totalMitSetter}&euro;</span>/Monat
               </p>
             )}
           </div>
