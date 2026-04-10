@@ -1,5 +1,3 @@
-import { Logo } from "@/components/Logo";
-
 export default function OnboardingLayout({
   children,
 }: {
@@ -9,9 +7,7 @@ export default function OnboardingLayout({
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <header className="border-b border-gray-100 bg-white px-6 py-4">
-        <div className="mx-auto max-w-4xl">
-          <Logo size="md" />
-        </div>
+        <div className="mx-auto max-w-4xl" />
       </header>
 
       {/* Content */}

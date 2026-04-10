@@ -48,7 +48,6 @@ import {
   Megaphone,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Logo, LogoIcon } from "@/components/Logo";
 
 type Role = "admin" | "teamleiter" | "setter" | "berater";
 
@@ -227,12 +226,6 @@ export function Sidebar({ role }: SidebarProps) {
     return () => clearInterval(interval);
   }, [fetchNeuLeads]);
 
-  const brandLink = (
-    <Link href="/" className="flex items-center">
-      <Logo size="sm" />
-    </Link>
-  );
-
   return (
     <TooltipProvider>
       {/* Desktop sidebar */}
@@ -243,14 +236,8 @@ export function Sidebar({ role }: SidebarProps) {
         )}
       >
         {/* Brand */}
-        <div className="flex h-16 items-center border-b border-border px-4">
-          {!collapsed && brandLink}
-          {collapsed && (
-            <Link href="/" className="mx-auto flex items-center justify-center">
-              <LogoIcon />
-            </Link>
-          )}
-        </div>
+        <div className="flex h-16 items-center border-b border-border px-4" />
+
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 py-4" role="navigation" aria-label="Hauptnavigation">
@@ -286,9 +273,7 @@ export function Sidebar({ role }: SidebarProps) {
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
         <SheetContent side="left" className="w-64 p-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <div className="flex h-16 items-center border-b border-border px-4">
-            {brandLink}
-          </div>
+          <div className="flex h-16 items-center border-b border-border px-4" />
           <nav className="flex-1 overflow-y-auto px-2 py-4" role="navigation" aria-label="Hauptnavigation">
             <SidebarNav
               navItems={navItems}

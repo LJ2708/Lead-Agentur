@@ -192,17 +192,32 @@ export default function BeraterLeadsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredLeads.map((lead) => (
+                    {filteredLeads.map((lead) => {
+                      const unaccepted = !lead.accepted_at;
+                      const displayName = unaccepted
+                        ? [lead.vorname, lead.nachname ? lead.nachname[0] + "." : ""].filter(Boolean).join(" ") || "Neuer Lead"
+                        : `${lead.vorname} ${lead.nachname}`;
+                      const displayPhone = unaccepted && lead.telefon
+                        ? lead.telefon.slice(0, 6) + "•••••"
+                        : (lead.telefon ?? "-");
+                      const displayEmail = unaccepted && lead.email
+                        ? lead.email.split("@")[0].slice(0, 3) + "•••@" + lead.email.split("@")[1]
+                        : lead.email;
+
+                      return (
                       <TableRow
                         key={lead.id}
                         className="cursor-pointer"
-                        onClick={() => router.push(`/berater/leads/${lead.id}`)}
+                        onClick={() => {
+                          if (unaccepted) return;
+                          router.push(`/berater/leads/${lead.id}`);
+                        }}
                       >
                         <TableCell className="font-medium">
-                          {lead.vorname} {lead.nachname}
+                          {displayName}
                         </TableCell>
-                        <TableCell>{lead.telefon ?? "-"}</TableCell>
-                        <TableCell>{lead.email}</TableCell>
+                        <TableCell>{displayPhone}</TableCell>
+                        <TableCell>{displayEmail}</TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(lead.status)}`}
@@ -221,7 +236,8 @@ export default function BeraterLeadsPage() {
                             : "-"}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}

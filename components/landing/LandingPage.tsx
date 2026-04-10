@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { Logo } from "@/components/Logo"
 import {
   Zap,
   MessageCircle,
@@ -24,9 +23,7 @@ function Navbar() {
   return (
     <header className="fixed top-0 z-50 w-full border-b border-[#222226] bg-[#08080A]/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center">
-          <Logo size="md" />
-        </Link>
+        <Link href="/" className="flex items-center" />
 
         <nav className="hidden items-center gap-8 md:flex">
           <a href="#funktionen" className="text-sm font-medium text-[#FAFAFA]/60 transition-colors hover:text-[#FAFAFA]">
@@ -492,9 +489,7 @@ function Footer() {
     <footer className="border-t border-[#222226] bg-[#08080A] py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-          <div className="flex items-center">
-            <Logo size="sm" />
-          </div>
+          <div className="flex items-center" />
 
           <nav className="flex flex-wrap items-center gap-6 text-sm text-[#FAFAFA]/40">
             <Link href="/impressum" className="transition-colors hover:text-[#FAFAFA]">

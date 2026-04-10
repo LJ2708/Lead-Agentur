@@ -89,6 +89,13 @@ export default function BeraterLeadDetailPage() {
       router.push("/berater/leads");
       return;
     }
+
+    // Block access to lead details if not yet accepted
+    if (!leadData.accepted_at) {
+      router.push("/berater");
+      return;
+    }
+
     setLead(leadData);
 
     // Fetch activities with creator names

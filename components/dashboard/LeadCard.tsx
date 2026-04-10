@@ -139,8 +139,8 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _beraterId = beraterId
 
-  // Lead is "accepted" if accepted_at is set, or status is beyond zugewiesen/neu
-  const needsAcceptance = !lead.accepted_at && ["neu", "zugewiesen"].includes(lead.status)
+  // Lead needs acceptance if accepted_at is not set (regardless of status)
+  const needsAcceptance = !lead.accepted_at
   const isAccepted = !needsAcceptance
 
   // Mask contact details for unaccepted leads
@@ -189,13 +189,19 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
                     }
                   />
                 </span>
-                <Link
-                  href={`/berater/leads/${lead.id}`}
-                  className="truncate text-base font-semibold text-foreground hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {leadName}
-                </Link>
+                {isAccepted ? (
+                  <Link
+                    href={`/berater/leads/${lead.id}`}
+                    className="truncate text-base font-semibold text-foreground hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {leadName}
+                  </Link>
+                ) : (
+                  <span className="truncate text-base font-semibold text-foreground">
+                    {leadName}
+                  </span>
+                )}
                 <ScoreBadge score={score.total} />
                 {slaActive && (
                   <SlaTimer
@@ -305,9 +311,9 @@ export function LeadCard({ lead, score, beraterId, onUpdate }: LeadCardProps) {
                 <dt className="text-muted-foreground">Name</dt>
                 <dd>{leadName}</dd>
                 <dt className="text-muted-foreground">Telefon</dt>
-                <dd>{lead.telefon ?? "—"}</dd>
+                <dd>{maskedPhone ?? "—"}</dd>
                 <dt className="text-muted-foreground">E-Mail</dt>
-                <dd className="break-all">{lead.email ?? "—"}</dd>
+                <dd className="break-all">{maskedEmail ?? "—"}</dd>
                 <dt className="text-muted-foreground">Kontaktversuche</dt>
                 <dd>{lead.kontaktversuche ?? 0}</dd>
                 {lead.zugewiesen_am && (
