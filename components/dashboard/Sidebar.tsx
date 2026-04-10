@@ -273,9 +273,7 @@ export function Sidebar({ role }: SidebarProps) {
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
         <SheetContent side="left" className="w-64 p-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <div className="flex h-16 items-center border-b border-border px-4">
-            {brandLink}
-          </div>
+          <div className="flex h-16 items-center border-b border-border px-4" />
           <nav className="flex-1 overflow-y-auto px-2 py-4" role="navigation" aria-label="Hauptnavigation">
             <SidebarNav
               navItems={navItems}
