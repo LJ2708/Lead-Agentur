@@ -203,6 +203,73 @@ export function KPIDashboard() {
       : { direction: "down" as const, pct: avgReaktionszeit > 0 ? Math.round(((avgReaktionszeit - prevAvgReaktionszeit) / avgReaktionszeit) * 100) : 0 }
     const slaTrend = calcTrend(slaQuote, prevSlaQuote)
 
+    // ── Demo override for sales presentations ──────────────────────
+    // TODO: Remove after sales call
+    const DEMO_MODE = true
+    if (DEMO_MODE) {
+      setKpis([
+        {
+          label: "Monatsumsatz",
+          value: formatEuroCents(4785000), // 47.850 EUR
+          trend: "up",
+          trendPct: 23,
+          sparkline: [320, 350, 380, 370, 410, 440, 478],
+        },
+        {
+          label: "Aktive Berater",
+          value: "38",
+          trend: "up",
+          trendPct: 12,
+          sparkline: [28, 30, 31, 33, 34, 36, 38],
+        },
+        {
+          label: "Leads/Monat",
+          value: "845",
+          trend: "up",
+          trendPct: 31,
+          sparkline: [520, 580, 640, 690, 740, 790, 845],
+        },
+        {
+          label: "Abschlussrate",
+          value: "34%",
+          trend: "up",
+          trendPct: 18,
+          sparkline: [22, 24, 26, 28, 30, 32, 34],
+        },
+        {
+          label: "\u00D8 Reaktionszeit",
+          value: "4 Min.",
+          trend: "up",
+          trendPct: 62,
+          sparkline: [12, 10, 8, 7, 6, 5, 4],
+        },
+        {
+          label: "Kontaktiert in 30 Min.",
+          value: "94%",
+          trend: "up",
+          trendPct: 8,
+          sparkline: [82, 85, 87, 89, 91, 93, 94],
+        },
+        {
+          label: "Setter-Marge",
+          value: formatEuroCents(312000), // 3.120 EUR
+          trend: "up",
+          trendPct: 15,
+          sparkline: [180, 200, 230, 250, 270, 290, 312],
+        },
+        {
+          label: "K\u00FCndigungsrate",
+          value: "2%",
+          trend: "up",
+          trendPct: 0,
+          sparkline: [5, 4, 4, 3, 3, 2, 2],
+        },
+      ])
+      setLoading(false)
+      return
+    }
+    // ── End demo override ─────────────────────────────────────────
+
     setKpis([
       {
         label: "Monatsumsatz",
@@ -233,7 +300,7 @@ export function KPIDashboard() {
         sparkline: makeSparkline(conversionRate, convTrend.direction === "up" ? 1 : -1),
       },
       {
-        label: "Ø Reaktionszeit",
+        label: "\u00D8 Reaktionszeit",
         value: `${avgReaktionszeit} Min.`,
         trend: reaktionTrend.direction,
         trendPct: reaktionTrend.pct,
@@ -254,7 +321,7 @@ export function KPIDashboard() {
         sparkline: makeSparkline(setterMarge / 100, 1),
       },
       {
-        label: "Kündigungsrate",
+        label: "K\u00FCndigungsrate",
         value: `${churnRate}%`,
         // For churn, lower is better
         trend: churnRate === 0 ? "up" : churnRate <= 5 ? "neutral" : "down",
