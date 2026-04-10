@@ -264,6 +264,20 @@ export function KPIDashboard() {
           trendPct: 0,
           sparkline: [5, 4, 4, 3, 3, 2, 2],
         },
+        {
+          label: "\u00D8 Abschlusswert",
+          value: "238 EH",
+          trend: "up",
+          trendPct: 61,
+          sparkline: [148, 160, 175, 195, 210, 225, 238],
+        },
+        {
+          label: "\u00D8 BWS (Bewertungssumme)",
+          value: "124.950",
+          trend: "up",
+          trendPct: 61,
+          sparkline: [77700, 85000, 92000, 100000, 108000, 116000, 124950],
+        },
       ])
       setLoading(false)
       return
