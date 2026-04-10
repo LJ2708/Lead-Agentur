@@ -210,24 +210,24 @@ export function KPIDashboard() {
       setKpis([
         {
           label: "Monatsumsatz",
-          value: formatEuroCents(4785000), // 47.850 EUR
+          value: formatEuroCents(2490000), // 24.900 EUR
           trend: "up",
           trendPct: 23,
-          sparkline: [320, 350, 380, 370, 410, 440, 478],
+          sparkline: [165, 180, 195, 205, 220, 235, 249],
         },
         {
           label: "Aktive Berater",
-          value: "38",
+          value: "20",
           trend: "up",
-          trendPct: 12,
-          sparkline: [28, 30, 31, 33, 34, 36, 38],
+          trendPct: 18,
+          sparkline: [12, 14, 15, 16, 17, 19, 20],
         },
         {
           label: "Leads/Monat",
-          value: "845",
+          value: "460",
           trend: "up",
-          trendPct: 31,
-          sparkline: [520, 580, 640, 690, 740, 790, 845],
+          trendPct: 27,
+          sparkline: [280, 310, 340, 370, 400, 430, 460],
         },
         {
           label: "Abschlussrate",
@@ -252,10 +252,10 @@ export function KPIDashboard() {
         },
         {
           label: "Setter-Marge",
-          value: formatEuroCents(312000), // 3.120 EUR
+          value: formatEuroCents(164000), // 1.640 EUR
           trend: "up",
           trendPct: 15,
-          sparkline: [180, 200, 230, 250, 270, 290, 312],
+          sparkline: [95, 105, 120, 130, 140, 155, 164],
         },
         {
           label: "K\u00FCndigungsrate",
