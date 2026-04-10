@@ -278,9 +278,15 @@ export function SmartInsights() {
       })
     }
 
+    // TODO: Remove demo filter after sales call
+    const DEMO_MODE = true
+    const filtered = DEMO_MODE
+      ? collected.filter((i) => !i.id.startsWith("pacing-") && i.id !== "unassigned-leads")
+      : collected
+
     // Sort by severity, then slice top 5
-    collected.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
-    setInsights(collected.slice(0, MAX_INSIGHTS))
+    filtered.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+    setInsights(filtered.slice(0, MAX_INSIGHTS))
     setLoading(false)
   }, [])
 
